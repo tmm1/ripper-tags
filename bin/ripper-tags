@@ -1,0 +1,76 @@
+#!/usr/bin/env ruby
+
+require 'tag_ripper'
+require 'pp'
+
+if ARGV.delete('--json')
+  require 'yajl'
+  json = true
+end
+if ARGV.delete('--debug')
+  debug = true
+end
+if ARGV.delete('--vim')
+  vim = true
+  all_tags = []
+end
+
+ARGV.each do |file|
+  begin
+    data = File.read(file)
+    sexp = TagRipper.new(data, file).parse
+    v = TagRipper::Visitor.new(sexp, file, data)
+
+    if debug
+      pp sexp
+    elsif json
+      v.tags.each do |tag|
+        puts Yajl.dump(tag)
+      end
+    elsif vim
+      all_tags += v.tags
+    else
+      v.tags.each do |tag|
+        kind = case tag[:kind]
+        when /method$/ then 'def'
+        when /^const/  then 'const'
+        else tag[:kind]
+        end
+        if kind == 'class' && tag[:inherits]
+          suffix = " < #{tag[:inherits]}"
+        else
+          suffix = ''
+        end
+
+        puts "#{tag[:line].to_s.rjust(5)}  #{kind.to_s.rjust(6)}   #{tag[:full_name]}#{suffix}"
+      end
+    end
+  rescue Exception => e
+    STDERR.puts [e, file].inspect
+    raise e
+  end
+end
+
+if vim
+  puts <<-EOC
+!_TAG_FILE_FORMAT\t2\t/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED\t1\t/0=unsorted, 1=sorted, 2=foldcase/
+EOC
+
+  all_tags.sort_by!{ |t| t[:name] }
+  all_tags.each do |tag|
+    kwargs = ''
+    kwargs << "\tclass:#{tag[:class]}" if tag[:class]
+    kwargs << "\tinherits:#{tag[:inherits]}" if tag[:inherits]
+
+    kind = case tag[:kind]
+           when 'method' then 'f'
+           when 'singleton method' then 'F'
+           when 'constant' then 'C'
+           else tag[:kind].slice(0,1)
+           end
+
+    code = tag[:pattern].gsub('\\','\\\\\\\\').gsub('/','\\/')
+    puts "%s\t%s\t/^%s$/;\"\t%c%s" % [tag[:name], tag[:path], code, kind, kwargs]
+  end
+end
