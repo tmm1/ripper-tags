@@ -60,8 +60,8 @@ EOC
   all_tags.sort_by!{ |t| t[:name] }
   all_tags.each do |tag|
     kwargs = ''
-    kwargs << "\tclass:#{tag[:class]}" if tag[:class]
-    kwargs << "\tinherits:#{tag[:inherits]}" if tag[:inherits]
+    kwargs << "\tclass:#{tag[:class].gsub('::','.')}" if tag[:class]
+    kwargs << "\tinherits:#{tag[:inherits].gsub('::','.')}" if tag[:inherits]
 
     kind = case tag[:kind]
            when 'method' then 'f'
