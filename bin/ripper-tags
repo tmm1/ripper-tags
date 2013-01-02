@@ -14,6 +14,9 @@ if ARGV.delete('--vim')
   vim = true
   all_tags = []
 end
+if ARGV.delete('--emacs')
+  emacs = true
+end
 
 ARGV.each do |file|
   begin
@@ -23,12 +26,24 @@ ARGV.each do |file|
 
     if debug
       pp sexp
+
     elsif json
       v.tags.each do |tag|
         puts Yajl.dump(tag)
       end
+
+    elsif emacs
+      section = []
+      v.tags.each do |tag|
+        section << "#{tag[:pattern]}\x7F#{tag[:name]}\x01#{tag[:line]},0"
+      end
+      section = section.join("\n")
+
+      print "\x0C\n#{file},#{section.bytesize}\n#{section}\n"
+
     elsif vim
       all_tags += v.tags
+
     else
       v.tags.each do |tag|
         kind = case tag[:kind]
@@ -36,6 +51,7 @@ ARGV.each do |file|
         when /^const/  then 'const'
         else tag[:kind]
         end
+
         if kind == 'class' && tag[:inherits]
           suffix = " < #{tag[:inherits]}"
         else
