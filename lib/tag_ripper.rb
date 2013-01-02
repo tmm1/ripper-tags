@@ -55,6 +55,7 @@ class TagRipper < Ripper
     a.flatten!(1)
     [[a && a[0], b[0]].join('::'), b[1]]
   end
+  alias on_const_path_field on_const_path_ref
 
   def on_binary(*args)
   end
