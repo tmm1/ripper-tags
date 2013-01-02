@@ -17,6 +17,9 @@ end
 if ARGV.delete('--emacs')
   emacs = true
 end
+if ARGV.delete('--debug-full')
+  debug_full = true
+end
 
 ARGV.each do |file|
   begin
@@ -24,7 +27,10 @@ ARGV.each do |file|
     sexp = TagRipper.new(data, file).parse
     v = TagRipper::Visitor.new(sexp, file, data)
 
-    if debug
+    if debug_full
+      pp Ripper.sexp(data)
+
+    elsif debug
       pp sexp
 
     elsif json
