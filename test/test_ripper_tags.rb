@@ -35,6 +35,10 @@ class TagRipperTest < Test::Unit::TestCase
         end
       end
       M::C::Const3 = true
+      M.class_eval do
+        def imethod5
+        end
+      end
     EOC
 
     assert_equal %w[
@@ -54,6 +58,7 @@ class TagRipperTest < Test::Unit::TestCase
       M::C#imethod3
       M::C.cmethod4
       M::C::Const3
+      M#imethod5
     ], tags.map{ |t| t[:full_name] }
   end
 

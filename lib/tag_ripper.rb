@@ -97,7 +97,10 @@ class TagRipper < Ripper
   def on_method_add_block(method, body)
     return unless method and body
     if method[2] == 'class_eval'
-      [:class_eval, [method[1], method[3]], body.last]
+      [:class_eval, [
+        method[1].is_a?(Array) ? method[1][0] : method[1],
+        method[3]
+      ], body.last]
     end
   end
 
