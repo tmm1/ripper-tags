@@ -20,10 +20,22 @@ end
 if ARGV.delete('--debug-full')
   debug_full = true
 end
+if ARGV.delete('--recurse')
+  recurse = true
+end
+if ARGV.delete('--only-rb')
+  only_ruby = true
+end
 
 ARGV.each do |file|
   begin
-    data = File.read(file)
+    if File.directory?(file) and recurse
+      Dir.foreach(file){ |f| ARGV << File.expand_path(File.join(file, f)) if f !~ /^\.\.?/ }
+      next
+    else
+      next if only_ruby and file !~ /\.rb$/
+      data = File.read(file)
+    end
     sexp = TagRipper.new(data, file).parse
     v = TagRipper::Visitor.new(sexp, file, data)
 
