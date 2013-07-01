@@ -10,10 +10,13 @@ options = OpenStruct.new(
   debug: false,
   vim: false,
   emacs: false,
+  tag_file_name: "./tags",
   verbose: false,
   files: %w[.],
   recursive: false
 )
+
+all_tags = []
 
 opt_parse = OptionParser.new do |opts|
   opts.banner = "Usage: ripper-tags [options] (file/directory)"
@@ -33,12 +36,15 @@ opt_parse = OptionParser.new do |opts|
   opts.on("-V", "--vim", "Output vim optimized format to tags file") do
     options.vim = true
   end
+  opts.on("-f", "--tag-file FILE", "Filename to output tags to, default #{options.tag_file_name}") do |fname|
+    options.tag_file_name = fname
+  end
   opts.on("-R", "--recursive", "Descend recursively into given directory") do
     options.recursive = true
   end
   opts.separator " "
   opts.on_tail("-h", "--help", "Show this message") do
-    puts opts
+    $stderr.puts opts
     exit
   end
 end
@@ -48,87 +54,90 @@ if ARGV.size > 0
   options.files = ARGV
 end
 
-options.files.each do |file_or_directory|
-  begin
-    if options.recursive && (File.directory?(file_or_directory))
-      read_files = Dir["#{file_or_directory}/**/*"]
-    else
-      read_files = [file_or_directory]
-    end
-    read_files.each do |file|
-      next if File.directory?(file)
-      $stderr.puts "Reading file #{file}"
-      data = File.read(file)
-      sexp = TagRipper.new(data, file).parse
-      v = TagRipper::Visitor.new(sexp, file, data)
+File.open(options.tag_file_name, "w+") do |tag_file|
 
-      if options.verbose
-        pp Ripper.sexp(data)
-
-      elsif options.debug
-        pp sexp
-
-      elsif options.json
-        v.tags.each do |tag|
-          puts Yajl.dump(tag)
-        end
-
-      elsif options.emacs
-        section = []
-        v.tags.each do |tag|
-          section << "#{tag[:pattern]}\x7F#{tag[:name]}\x01#{tag[:line]},0"
-        end
-        section = section.join("\n")
-
-        print "\x0C\n#{file},#{section.bytesize}\n#{section}\n"
-
-      elsif options.vim
-        all_tags += v.tags
-
+  options.files.each do |file_or_directory|
+    begin
+      if options.recursive && (File.directory?(file_or_directory))
+        read_files = Dir["#{file_or_directory}/**/*"]
       else
-        v.tags.each do |tag|
-          kind = case tag[:kind]
-                 when /method$/ then 'def'
-                 when /^const/  then 'const'
-                 else tag[:kind]
-                 end
+        read_files = [file_or_directory]
+      end
+      read_files.each do |file|
+        next if File.directory?(file)
+        $stderr.puts "Reading file #{file}"
+        data = File.read(file)
+        sexp = TagRipper.new(data, file).parse
+        v = TagRipper::Visitor.new(sexp, file, data)
 
-          if kind == 'class' && tag[:inherits]
-            suffix = " < #{tag[:inherits]}"
-          else
-            suffix = ''
+        if options.verbose
+          pp Ripper.sexp(data)
+
+        elsif options.debug
+          pp sexp
+
+        elsif options.json
+          v.tags.each do |tag|
+            puts Yajl.dump(tag)
           end
 
-          puts "#{tag[:line].to_s.rjust(5)}  #{kind.to_s.rjust(6)}   #{tag[:full_name]}#{suffix}"
+        elsif options.emacs
+          section = []
+          v.tags.each do |tag|
+            section << "#{tag[:pattern]}\x7F#{tag[:name]}\x01#{tag[:line]},0"
+          end
+          section = section.join("\n")
+
+          tag_file.print "\x0C\n#{file},#{section.bytesize}\n#{section}\n"
+
+        elsif options.vim
+          all_tags += v.tags
+
+        else
+          v.tags.each do |tag|
+            kind = case tag[:kind]
+                   when /method$/ then 'def'
+                   when /^const/  then 'const'
+                   else tag[:kind]
+                   end
+
+            if kind == 'class' && tag[:inherits]
+              suffix = " < #{tag[:inherits]}"
+            else
+              suffix = ''
+            end
+
+            tag_file.puts "#{tag[:line].to_s.rjust(5)}  #{kind.to_s.rjust(6)}   #{tag[:full_name]}#{suffix}"
+          end
         end
       end
+    rescue Exception => e
+      $stderr.puts [e, file_or_directory].inspect
+      raise e
     end
-  rescue Exception => e
-    STDERR.puts [e, file_or_directory].inspect
-    raise e
   end
-end
 
-if options.vim
-  puts <<-EOC
+  if options.vim
+    tag_file.puts <<-EOC
 !_TAG_FILE_FORMAT\t2\t/extended format; --format=1 will not append ;" to lines/
 !_TAG_FILE_SORTED\t1\t/0=unsorted, 1=sorted, 2=foldcase/
-EOC
+    EOC
 
-  all_tags.sort_by!{ |t| t[:name] }
-  all_tags.each do |tag|
-    kwargs = ''
-    kwargs << "\tclass:#{tag[:class].gsub('::','.')}" if tag[:class]
-    kwargs << "\tinherits:#{tag[:inherits].gsub('::','.')}" if tag[:inherits]
+    all_tags.sort_by!{ |t| t[:name] }
+    all_tags.each do |tag|
+      kwargs = ''
+      kwargs << "\tclass:#{tag[:class].gsub('::','.')}" if tag[:class]
+      kwargs << "\tinherits:#{tag[:inherits].gsub('::','.')}" if tag[:inherits]
 
-    kind = case tag[:kind]
-           when 'method' then 'f'
-           when 'singleton method' then 'F'
-           when 'constant' then 'C'
-           else tag[:kind].slice(0,1)
-           end
+      kind = case tag[:kind]
+             when 'method' then 'f'
+             when 'singleton method' then 'F'
+             when 'constant' then 'C'
+             else tag[:kind].slice(0,1)
+             end
 
-    code = tag[:pattern].gsub('\\','\\\\\\\\').gsub('/','\\/')
-    puts "%s\t%s\t/^%s$/;\"\t%c%s" % [tag[:name], tag[:path], code, kind, kwargs]
+      code = tag[:pattern].gsub('\\','\\\\\\\\').gsub('/','\\/')
+      tag_file.puts "%s\t%s\t/^%s$/;\"\t%c%s" % [tag[:name], tag[:path], code, kind, kwargs]
+    end
   end
 end
