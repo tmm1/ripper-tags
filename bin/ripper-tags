@@ -1,5 +1,9 @@
 #!/usr/bin/env ruby
 
+if defined?(Bundler)
+  Bundler.require
+end
+
 require 'tag_ripper'
 require 'tag_ripper/default_formatter'
 require 'tag_ripper/emacs_formatter'
@@ -7,6 +11,7 @@ require 'tag_ripper/vim_formatter'
 require 'pp'
 require 'optparse'
 require 'ostruct'
+require 'yajl'
 
 options = OpenStruct.new(
   json: false,
@@ -83,7 +88,7 @@ File.open(options.tag_file_name, "w+") do |tag_file|
 
         if options.json
           v.tags.each do |tag|
-            puts Yajl.dump(tag)
+            tag_file.puts Yajl.dump(tag)
           end
 
         elsif options.emacs
