@@ -2,78 +2,114 @@
 
 require 'tag_ripper'
 require 'pp'
+require 'optparse'
+require 'ostruct'
 
-if ARGV.delete('--json')
-  require 'yajl'
-  json = true
+options = OpenStruct.new(
+  json: false,
+  debug: false,
+  vim: false,
+  emacs: false,
+  verbose: false,
+  files: %w[.],
+  recursive: false
+)
+
+opt_parse = OptionParser.new do |opts|
+  opts.banner = "Usage: ripper-tags [options] (file/directory)"
+  opts.separator ""
+  opts.on("-J", "--json", "Output nodes as json") do
+    options.json = true
+  end
+  opts.on("-d", "--debug", "Output parse tree") do
+    options.debug = true
+  end
+  opts.on("-v", "--verbose", "Output parse tree verbosely") do
+    options.verbose = options.debug
+  end
+  opts.on("-e", "--emacs", "Output emacs format to tags file") do
+    options.emacs = true
+  end
+  opts.on("-V", "--vim", "Output vim optimized format to tags file") do
+    options.vim = true
+  end
+  opts.on("-R", "--recursive", "Descend recursively into given directory") do
+    options.recursive = true
+  end
+  opts.separator " "
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
 end
-if ARGV.delete('--debug')
-  debug = true
-end
-if ARGV.delete('--vim')
-  vim = true
-  all_tags = []
-end
-if ARGV.delete('--emacs')
-  emacs = true
-end
-if ARGV.delete('--debug-full')
-  debug_full = true
+opt_parse.parse!(ARGV)
+
+if ARGV.size > 0
+  options.files = ARGV
 end
 
-ARGV.each do |file|
+options.files.each do |file_or_directory|
   begin
-    data = File.read(file)
-    sexp = TagRipper.new(data, file).parse
-    v = TagRipper::Visitor.new(sexp, file, data)
-
-    if debug_full
-      pp Ripper.sexp(data)
-
-    elsif debug
-      pp sexp
-
-    elsif json
-      v.tags.each do |tag|
-        puts Yajl.dump(tag)
-      end
-
-    elsif emacs
-      section = []
-      v.tags.each do |tag|
-        section << "#{tag[:pattern]}\x7F#{tag[:name]}\x01#{tag[:line]},0"
-      end
-      section = section.join("\n")
-
-      print "\x0C\n#{file},#{section.bytesize}\n#{section}\n"
-
-    elsif vim
-      all_tags += v.tags
-
+    if options.recursive && (File.directory?(file_or_directory))
+      read_files = Dir["#{file_or_directory}/**/*"]
     else
-      v.tags.each do |tag|
-        kind = case tag[:kind]
-        when /method$/ then 'def'
-        when /^const/  then 'const'
-        else tag[:kind]
+      read_files = [file_or_directory]
+    end
+    read_files.each do |file|
+      next if File.directory?(file)
+      $stderr.puts "Reading file #{file}"
+      data = File.read(file)
+      sexp = TagRipper.new(data, file).parse
+      v = TagRipper::Visitor.new(sexp, file, data)
+
+      if options.verbose
+        pp Ripper.sexp(data)
+
+      elsif options.debug
+        pp sexp
+
+      elsif options.json
+        v.tags.each do |tag|
+          puts Yajl.dump(tag)
         end
 
-        if kind == 'class' && tag[:inherits]
-          suffix = " < #{tag[:inherits]}"
-        else
-          suffix = ''
+      elsif options.emacs
+        section = []
+        v.tags.each do |tag|
+          section << "#{tag[:pattern]}\x7F#{tag[:name]}\x01#{tag[:line]},0"
         end
+        section = section.join("\n")
 
-        puts "#{tag[:line].to_s.rjust(5)}  #{kind.to_s.rjust(6)}   #{tag[:full_name]}#{suffix}"
+        print "\x0C\n#{file},#{section.bytesize}\n#{section}\n"
+
+      elsif options.vim
+        all_tags += v.tags
+
+      else
+        v.tags.each do |tag|
+          kind = case tag[:kind]
+                 when /method$/ then 'def'
+                 when /^const/  then 'const'
+                 else tag[:kind]
+                 end
+
+          if kind == 'class' && tag[:inherits]
+            suffix = " < #{tag[:inherits]}"
+          else
+            suffix = ''
+          end
+
+          puts "#{tag[:line].to_s.rjust(5)}  #{kind.to_s.rjust(6)}   #{tag[:full_name]}#{suffix}"
+        end
       end
     end
   rescue Exception => e
-    STDERR.puts [e, file].inspect
+    STDERR.puts [e, file_or_directory].inspect
     raise e
   end
 end
 
-if vim
+if options.vim
   puts <<-EOC
 !_TAG_FILE_FORMAT\t2\t/extended format; --format=1 will not append ;" to lines/
 !_TAG_FILE_SORTED\t1\t/0=unsorted, 1=sorted, 2=foldcase/
