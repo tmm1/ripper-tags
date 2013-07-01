@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'tag_ripper'
+require 'tag_ripper/default_formatter'
 require 'tag_ripper/vim_formatter'
 require 'pp'
 require 'optparse'
@@ -66,7 +67,7 @@ File.open(options.tag_file_name, "w+") do |tag_file|
       end
       read_files.each do |file|
         next if File.directory?(file)
-        $stderr.puts "Reading file #{file}"
+        $stderr.puts "Reading file #{file}" if options.debug || options.verbose
         data = File.read(file)
         next if data =~ /_TAG_FILE_/ # don't parse annotated tag files
         sexp = TagRipper.new(data, file).parse
@@ -97,21 +98,7 @@ File.open(options.tag_file_name, "w+") do |tag_file|
           all_tags += v.tags
 
         else
-          v.tags.each do |tag|
-            kind = case tag[:kind]
-                   when /method$/ then 'def'
-                   when /^const/  then 'const'
-                   else tag[:kind]
-                   end
-
-            if kind == 'class' && tag[:inherits]
-              suffix = " < #{tag[:inherits]}"
-            else
-              suffix = ''
-            end
-
-            tag_file.puts "#{tag[:line].to_s.rjust(5)}  #{kind.to_s.rjust(6)}   #{tag[:full_name]}#{suffix}"
-          end
+          tag_file.print(TagRipper::DefaultFormatter.new(v.tags).build)
         end
       end
     rescue Exception => e
