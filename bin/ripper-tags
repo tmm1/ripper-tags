@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'tag_ripper'
+require 'tag_ripper/vim_formatter'
 require 'pp'
 require 'optparse'
 require 'ostruct'
@@ -67,6 +68,7 @@ File.open(options.tag_file_name, "w+") do |tag_file|
         next if File.directory?(file)
         $stderr.puts "Reading file #{file}"
         data = File.read(file)
+        next if data =~ /_TAG_FILE_/ # don't parse annotated tag files
         sexp = TagRipper.new(data, file).parse
         v = TagRipper::Visitor.new(sexp, file, data)
 
@@ -75,8 +77,9 @@ File.open(options.tag_file_name, "w+") do |tag_file|
 
         elsif options.debug
           pp sexp
+        end
 
-        elsif options.json
+        if options.json
           v.tags.each do |tag|
             puts Yajl.dump(tag)
           end
@@ -118,26 +121,6 @@ File.open(options.tag_file_name, "w+") do |tag_file|
   end
 
   if options.vim
-    tag_file.puts <<-EOC
-!_TAG_FILE_FORMAT\t2\t/extended format; --format=1 will not append ;" to lines/
-!_TAG_FILE_SORTED\t1\t/0=unsorted, 1=sorted, 2=foldcase/
-    EOC
-
-    all_tags.sort_by!{ |t| t[:name] }
-    all_tags.each do |tag|
-      kwargs = ''
-      kwargs << "\tclass:#{tag[:class].gsub('::','.')}" if tag[:class]
-      kwargs << "\tinherits:#{tag[:inherits].gsub('::','.')}" if tag[:inherits]
-
-      kind = case tag[:kind]
-             when 'method' then 'f'
-             when 'singleton method' then 'F'
-             when 'constant' then 'C'
-             else tag[:kind].slice(0,1)
-             end
-
-      code = tag[:pattern].gsub('\\','\\\\\\\\').gsub('/','\\/')
-      tag_file.puts "%s\t%s\t/^%s$/;\"\t%c%s" % [tag[:name], tag[:path], code, kind, kwargs]
-    end
+    tag_file.print(TagRipper::VimFormatter.new(all_tags).build)
   end
 end
