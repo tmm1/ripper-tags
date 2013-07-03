@@ -21,7 +21,8 @@ options = OpenStruct.new(
   tag_file_name: "./tags",
   verbose: false,
   files: %w[.],
-  recursive: false
+  recursive: false,
+  all_files: false
 )
 
 all_tags = []
@@ -29,28 +30,31 @@ all_tags = []
 opt_parse = OptionParser.new do |opts|
   opts.banner = "Usage: ripper-tags [options] (file/directory)"
   opts.separator ""
-  opts.on("-J", "--json", "Output nodes as json") do
-    options.json = true
-  end
-  opts.on("-d", "--debug", "Output parse tree") do
-    options.debug = true
-  end
-  opts.on("-v", "--verbose", "Output parse tree verbosely") do
-    options.verbose = options.debug
-  end
   opts.on("-e", "--emacs", "Output emacs format to tags file") do
     options.emacs = true
-  end
-  opts.on("-V", "--vim", "Output vim optimized format to tags file") do
-    options.vim = true
   end
   opts.on("-f", "--tag-file FILE", "Filename to output tags to, default #{options.tag_file_name}") do |fname|
     options.tag_file_name = fname
   end
+  opts.on("-J", "--json", "Output nodes as json") do
+    options.json = true
+  end
+  opts.on("-A", "--all-files", "Parse all files as ruby files") do
+    options.all_files = true
+  end
   opts.on("-R", "--recursive", "Descend recursively into given directory") do
     options.recursive = true
   end
+  opts.on("-V", "--vim", "Output vim optimized format to tags file") do
+    options.vim = true
+  end
   opts.separator " "
+  opts.on_tail("-d", "--debug", "Output parse tree") do
+    options.debug = true
+  end
+  opts.on_tail("-v", "--verbose", "Output parse tree verbosely") do
+    options.verbose = options.debug
+  end
   opts.on_tail("-h", "--help", "Show this message") do
     $stderr.puts opts
     exit
@@ -76,6 +80,8 @@ File.open(options.tag_file_name, "w+") do |tag_file|
         $stderr.puts "Reading file #{file}" if options.debug || options.verbose
         data = File.read(file)
         next if data =~ /_TAG_FILE_/ # don't parse annotated tag files
+        next unless options.all_files || file =~ /\.rb\z/ or data =~ /\A!#\S+\s*ruby/
+        $stderr.puts "Parsing file #{file}" if options.debug || options.verbose
         sexp = TagRipper.new(data, file).parse
         v = TagRipper::Visitor.new(sexp, file, data)
 
