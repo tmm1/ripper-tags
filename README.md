@@ -4,6 +4,7 @@ fast, accurate ctags generator for ruby source code using Ripper
 
 ### usage (bin)
 
+```
    Usage: ripper-tags [options] (file/directory)
 
     -e, --emacs                      Output emacs format to tags file
@@ -16,7 +17,7 @@ fast, accurate ctags generator for ruby source code using Ripper
     -d, --debug                      Output parse tree
     -v, --verbose                    Output parse tree verbosely
     -h, --help                       Show this message
-
+```
 
 ---
 
