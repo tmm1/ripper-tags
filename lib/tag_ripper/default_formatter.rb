@@ -19,7 +19,6 @@ class TagRipper
         end
         data << "#{tag[:line].to_s.rjust(5)}  #{kind.to_s.rjust(6)}   #{tag[:full_name]}#{suffix}"
       end
-      p data
       data.join("\n") unless data.empty?
     end
     def build
