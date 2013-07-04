@@ -21,6 +21,8 @@ class TagRipper
 
     def parse_file?(file, data)
       data && ( options.all_files || file =~ /\.rb\z/ || data =~ /\A!#\S+\s*ruby/)
+    rescue ArgumentError
+      false #probably a binary file.
     end
 
     def read
