@@ -4,10 +4,13 @@ if defined?(Bundler)
   Bundler.require
 end
 
+require 'ripper'
 require 'tag_ripper'
+require 'tag_ripper/data_reader'
 require 'tag_ripper/default_formatter'
 require 'tag_ripper/emacs_formatter'
 require 'tag_ripper/vim_formatter'
+require 'tag_ripper/json_formatter'
 require 'pp'
 require 'optparse'
 require 'ostruct'
@@ -66,56 +69,23 @@ if ARGV.size > 0
   options.files = ARGV
 end
 
-File.open(options.tag_file_name, "w+") do |tag_file|
+tags = TagRipper::DataReader.new(options).read.flatten
 
-  options.files.each do |file_or_directory|
-    begin
-      if options.recursive && (File.directory?(file_or_directory))
-        read_files = Dir["#{file_or_directory}/**/*"]
-      else
-        read_files = [file_or_directory]
-      end
-      read_files.each do |file|
-        next if File.directory?(file)
-        $stderr.puts "Reading file #{file}" if options.debug || options.verbose
-        data = File.read(file)
-        next if data =~ /_TAG_FILE_/ # don't parse annotated tag files
-        next unless options.all_files || file =~ /\.rb\z/ or data =~ /\A!#\S+\s*ruby/
-        $stderr.puts "Parsing file #{file}" if options.debug || options.verbose
-        sexp = TagRipper.new(data, file).parse
-        v = TagRipper::Visitor.new(sexp, file, data)
 
-        if options.verbose
-          pp Ripper.sexp(data)
+formatter = if options.vim
+              TagRipper::VimFormatter
+            elsif options.emacs
+              TagRipper::EmacsFormatter
+            elsif options.json
+              TagRipper::JSONFormatter
+            else
+              TagRipper::DefaultFormatter
+            end
 
-        elsif options.debug
-          pp sexp
-        end
-
-        if options.json
-          v.tags.each do |tag|
-            tag_file.puts Yajl.dump(tag)
-          end
-
-        elsif options.emacs
-          section = TagRipper::EmacsFormatter.new(v.tags).build
-
-          tag_file.print "\x0C\n#{file},#{section.bytesize}\n#{section}\n"
-
-        elsif options.vim
-          all_tags += v.tags
-
-        else
-          tag_file.print(TagRipper::DefaultFormatter.new(v.tags).build)
-        end
-      end
-    rescue Exception => e
-      $stderr.puts [e, file_or_directory].inspect
-      raise e
-    end
-  end
-
-  if options.vim
-    tag_file.print(TagRipper::VimFormatter.new(all_tags).build)
+if tags && !tags.empty?
+  File.open(options.tag_file_name, "w+") do |tag_file|
+    tag_file.print(formatter.new(tags).build)
   end
 end
+
+

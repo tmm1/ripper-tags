@@ -1,5 +1,3 @@
-require 'ripper.rb'
-
 class TagRipper < Ripper
   def self.extract(data, file='(eval)')
     sexp = new(data, file).parse
