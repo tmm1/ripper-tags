@@ -10,7 +10,7 @@ class TagRipper
 
     def read_files
       options.files.inject([]) do |files, file_or_directory|
-        if options.recursive && (File.directory?(file_or_directory))
+        if options.recursive && File.directory?(file_or_directory)
           files << Dir["#{file_or_directory}/**/*"]
         else
           files << file_or_directory
