@@ -61,6 +61,9 @@ opt_parse.parse!(ARGV)
 
 if ARGV.size > 0
   options.files = ARGV
+else
+  $stderr.puts opt_parse
+  exit
 end
 
 tags = TagRipper::DataReader.new(options).read.flatten
