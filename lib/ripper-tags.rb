@@ -30,7 +30,8 @@ opt_parse = OptionParser.new do |opts|
   opts.on("-e", "--emacs", "Output emacs format to tags file") do
     options.emacs = true
   end
-  opts.on("-f", "--tag-file FILE", "Filename to output tags to, default #{options.tag_file_name}") do |fname|
+  opts.on("-f", "--tag-file (FILE|-)", "Filename to output tags to, default #{options.tag_file_name}",
+         '"-" outputs to standard output') do |fname|
     options.tag_file_name = fname
   end
   opts.on("-J", "--json", "Output nodes as json") do
@@ -80,7 +81,11 @@ formatter = if options.vim
             end
 
 if tags && !tags.empty?
-  File.open(options.tag_file_name, "w+") do |tag_file|
-    tag_file.print(formatter.new(tags).build)
+  if options.tag_file_name == '-'
+    $stdout.print(formatter.new(tags).build)
+  else
+    File.open(options.tag_file_name, "w+") do |tag_file|
+      tag_file.print(formatter.new(tags).build)
+    end
   end
 end
