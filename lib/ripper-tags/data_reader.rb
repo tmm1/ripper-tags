@@ -27,22 +27,26 @@ class TagRipper
 
     def read
       read_files.inject([]) do |tags, file|
-        $stderr.puts "Reading file #{file}" if options.debug || options.verbose
+        $stderr.puts "Reading file #{file}" if options.verbose
         data = File.read(file) unless File.directory?(file)
         if x = parse_file?(file, data)
-          $stderr.puts "Parsing file #{file}" if options.debug || options.verbose
-          sexp = TagRipper.new(data, file).parse
-          v = TagRipper::Visitor.new(sexp, file, data)
-          if options.verbose
-            pp Ripper.sexp(data)
-          elsif options.debug
-            pp sexp
+          $stderr.puts "Parsing file #{file}" if options.verbose
+          begin
+            sexp = TagRipper.new(data, file).parse
+            v = TagRipper::Visitor.new(sexp, file, data)
+            if options.verbose_debug
+              pp Ripper.sexp(data)
+            elsif options.debug
+              pp sexp
+            end
+          rescue Exception => e
+            $stderr.puts "Error parsing #{file}"
+            throw e unless options.force
           end
           tags << v.tags if v
         end
         tags
       end
-
     end
   end
 end

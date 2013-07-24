@@ -16,7 +16,9 @@ options = OpenStruct.new(
   vim: false,
   emacs: false,
   tag_file_name: "./tags",
+  verbose_debug: false,
   verbose: false,
+  force: false,
   files: %w[.],
   recursive: false,
   all_files: false
@@ -50,8 +52,14 @@ opt_parse = OptionParser.new do |opts|
   opts.on_tail("-d", "--debug", "Output parse tree") do
     options.debug = true
   end
-  opts.on_tail("-v", "--verbose", "Output parse tree verbosely") do
-    options.verbose = options.debug
+  opts.on_tail("--debug-verbose", "Output parse tree verbosely") do
+    options.verbose_debug = true
+  end
+  opts.on_tail("-v", "--verbose", "Print additional information on stderr") do
+    options.verbose = true
+  end
+  opts.on_tail("--force", "Skip files with parsing errors") do
+    options.force = true
   end
   opts.on_tail("-h", "--help", "Show this message") do
     $stderr.puts opts
