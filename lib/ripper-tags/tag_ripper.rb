@@ -50,6 +50,7 @@ class TagRipper < Ripper
   end
 
   def on_const_path_ref(a, b)
+    return if a.nil? || b.nil?
     a.flatten!(1)
     [[a && a[0], b[0]].join('::'), b[1]]
   end
