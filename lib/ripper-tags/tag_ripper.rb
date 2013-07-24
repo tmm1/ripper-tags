@@ -1,5 +1,3 @@
-require 'ripper.rb'
-
 class TagRipper < Ripper
   def self.extract(data, file='(eval)')
     sexp = new(data, file).parse
@@ -52,6 +50,7 @@ class TagRipper < Ripper
   end
 
   def on_const_path_ref(a, b)
+    return if a.nil? || b.nil?
     a.flatten!(1)
     [[a && a[0], b[0]].join('::'), b[1]]
   end
