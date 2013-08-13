@@ -6,6 +6,16 @@ class TagRipperTest < Test::Unit::TestCase
     RipperTags::Parser.extract(code)
   end
 
+  def inspect(tag)
+    raise ArgumentError, "expected tag, got %p" % tag unless tag
+    "%d: %s %s%s" % [
+      tag[:line],
+      tag[:kind],
+      tag[:full_name],
+      tag[:inherits] ? " < #{tag[:inherits]}" : "",
+    ]
+  end
+
   def test_extract_basics
     tags = extract(<<-EOC)
       Const1 = 123
@@ -83,5 +93,47 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal 'private',   tags.find{ |t| t[:name] == 'def' }[:access]
     assert_equal 'protected', tags.find{ |t| t[:name] == 'ghi' }[:access]
     assert_equal 'public',    tags.find{ |t| t[:name] == 'jkl' }[:access]
+  end
+
+  def test_extract_manual_subclass
+    tags = extract(<<-EOC)
+      module M
+        C = Class.new(Sup::Klass)
+        C = Class.new Sup::Klass
+        C = Class.new
+        C = Class.new(klass)
+      end
+    EOC
+    assert_equal '2: class M::C < Sup::Klass', inspect(tags[1])
+    assert_equal '3: class M::C < Sup::Klass', inspect(tags[2])
+    assert_equal '4: class M::C', inspect(tags[3])
+    assert_equal '5: class M::C', inspect(tags[4])
+  end
+
+  def test_extract_assign_from_struct
+    tags = extract(<<-EOC)
+      module M
+        C = Struct.new(:name)
+        C = Struct.new :name
+      end
+    EOC
+    assert_equal '2: class M::C', inspect(tags[1])
+    assert_equal '3: class M::C', inspect(tags[2])
+  end
+
+  def test_extract_class_struct_scope
+    tags = extract(<<-EOC)
+      module M
+        S = Struct.new(:name) do
+          def imethod; end
+        end
+        C = Class.new(SuperClass) do
+          def imethod; end
+        end
+      end
+    EOC
+    assert_equal '3: method M::S#imethod', inspect(tags[2])
+    assert_equal '5: class M::C < SuperClass', inspect(tags[3])
+    assert_equal '6: method M::C#imethod', inspect(tags[4])
   end
 end

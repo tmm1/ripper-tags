@@ -41,7 +41,8 @@ class Parser < Ripper
     return if lhs.nil?
     return if lhs[0] == :field
     return if lhs[0] == :aref_field
-    [:assign, *lhs.flatten(1)]
+    lhs, line = lhs
+    [:assign, lhs, rhs, line]
   end
   def on_sclass(name, body)
     [:sclass, name && name.flatten(1), *body.compact]
@@ -90,7 +91,37 @@ class Parser < Ripper
   end
 
   def on_call(lhs, op, rhs)
-    [:call, lhs && lhs[0], rhs && rhs[0], rhs[1]]
+    return unless lhs && rhs
+    arg = block = nil
+    [:call, lhs[0], rhs[0], arg, block]
+  end
+
+  def on_method_add_arg(call, args)
+    if :call == call[0] && :args_add == args[0]
+      if args[1].nil?
+        # augment call if a single argument was used
+        call = call.dup
+        call[3] = args[2]
+      end
+      call
+    else
+      super
+    end
+  end
+
+  # handle `Class.new arg` call without parens
+  def on_command_call(*args)
+    if args.last && :args_add == args.last[0]
+      args_add = args.pop
+      call = on_call(*args)
+      on_method_add_arg(call, args_add)
+    else
+      super
+    end
+  end
+
+  def on_args_add(sub, arg)
+    [:args_add, sub, arg]
   end
 
   def on_do_block(*args)
@@ -104,6 +135,11 @@ class Parser < Ripper
         method[1].is_a?(Array) ? method[1][0] : method[1],
         method[3]
       ], body.last]
+    elsif :call == method[0]
+      # augment the `Class.new/Struct.new` call with associated block
+      call = method.dup
+      call[4] = body.last
+      call
     end
   end
 end
@@ -186,8 +222,14 @@ end
     def on_protected() @current_access = 'protected' end
     def on_public()    @current_access = 'public'    end
 
-    def on_assign(name, line)
+    def on_assign(name, rhs, line)
       return unless name =~ /^[A-Z]/
+
+      if rhs && :call == rhs[0] && rhs[1] && "#{rhs[1][0]}.#{rhs[2]}" =~ /^(Class|Struct)\.new$/
+        superclass = $1 == 'Class' ? rhs[3] : nil
+        superclass.flatten! if superclass
+        return on_module_or_class(:class, [name, line], superclass, rhs[4])
+      end
 
       emit_tag :constant, line,
         :name => name,
