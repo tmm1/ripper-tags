@@ -1,15 +1,13 @@
-module RipperTags
-  class EmacsFormatter
-    def initialize(tags)
-      @tags = tags
-    end
+require 'ripper-tags/default_formatter'
 
-    def build
-      data = []
-      @tags.each do |tag|
-        data << "#{tag[:pattern]}\x7F#{tag[:name]}\x01#{tag[:line]},0"
-      end
-      data.join("\n")
+module RipperTags
+  class EmacsFormatter < DefaultFormatter
+    def format(tag)
+      "%s\x7F%s\x01%d,0" % [
+        tag[:pattern],
+        tag[:name],
+        tag[:line],
+      ]
     end
   end
 end

@@ -83,6 +83,7 @@ module RipperTags
   end
 
   def self.formatter_for(options)
+    options.formatter ||
     if options.vim
       RipperTags::VimFormatter
     elsif options.emacs
@@ -91,20 +92,15 @@ module RipperTags
       RipperTags::JSONFormatter
     else
       RipperTags::DefaultFormatter
-    end
+    end.new(options)
   end
 
   def self.run(options)
     tags = RipperTags::DataReader.new(options).read.flatten
     formatter = formatter_for(options)
-
-    if tags && !tags.empty?
-      if options.tag_file_name == '-'
-        $stdout.print(formatter.new(tags).build)
-      else
-        File.open(options.tag_file_name, "w+") do |tag_file|
-          tag_file.print(formatter.new(tags).build)
-        end
+    formatter.with_output do |out|
+      tags.each do |tag|
+        formatter.write(tag, out)
       end
     end
   end

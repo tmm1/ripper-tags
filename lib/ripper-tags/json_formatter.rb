@@ -1,14 +1,10 @@
 require 'yajl'
+require 'ripper-tags/default_formatter'
 
 module RipperTags
-  class JSONFormatter
-    def initialize(tags)
-      @tags = tags
-    end
-    def build
-      @tags.map do |tag|
-        Yajl.dump(tag)
-      end.join("\n")
+  class JSONFormatter < DefaultFormatter
+    def format(tag)
+      Yajl.dump(tag)
     end
   end
 end
