@@ -17,5 +17,7 @@ Gem::Specification.new do |s|
   s.bindir = 'bin'
   s.executables << 'ripper-tags'
 
+  s.license = 'MIT'
+
   s.files = `git ls-files`.split("\n")
 end
