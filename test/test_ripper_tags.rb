@@ -150,4 +150,30 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal '3: module C::M', inspect(tags[2])
     assert_equal '4: method C::M#imethod', inspect(tags[3])
   end
+
+  def test_extract_define_method
+    tags = extract(<<-EOC)
+      module M
+        define_method(:imethod) do |arg|
+        end
+        define_method :imethod do |arg|
+        end
+        define_method(:imethod) { |arg| }
+      end
+    EOC
+    assert_equal '2: method M#imethod', inspect(tags[1])
+    assert_equal '4: method M#imethod', inspect(tags[2])
+    assert_equal '6: method M#imethod', inspect(tags[3])
+  end
+
+  def test_extract_alias_method
+    tags = extract(<<-EOC)
+      module M
+        alias_method(:imethod, :foo)
+        alias_method :imethod, :foo
+      end
+    EOC
+    assert_equal '2: alias M#imethod < foo', inspect(tags[1])
+    assert_equal '3: alias M#imethod < foo', inspect(tags[2])
+  end
 end

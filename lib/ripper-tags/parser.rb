@@ -65,9 +65,10 @@ class Parser < Ripper
   end
 
   def on_command(name, *args)
-    # if name =~ /^(attr_|alias)/
-    #   [name.to_sym, *args]
-    # end
+    case name[0]
+    when "define_method", "alias_method"
+      on_method_add_arg([:fcall, name], args[0])
+    end
   end
   def on_bodystmt(*args)
     args
@@ -97,13 +98,24 @@ class Parser < Ripper
   end
 
   def on_method_add_arg(call, args)
-    if :call == call[0] && :args_add == args[0]
-      if args[1].nil?
+    call_name = call && call[0]
+    first_arg = args && :args == args[0] && args[1]
+
+    if :call == call_name && first_arg
+      if args.length == 2
         # augment call if a single argument was used
         call = call.dup
-        call[3] = args[2]
+        call[3] = args[1]
       end
       call
+    elsif :fcall == call_name && first_arg
+      name, line = call[1]
+      case name
+      when "alias_method"
+        [:alias, args[1][0], args[2][0], line]
+      when "define_method"
+        [:def, args[1][0], line]
+      end
     else
       super
     end
@@ -111,7 +123,7 @@ class Parser < Ripper
 
   # handle `Class.new arg` call without parens
   def on_command_call(*args)
-    if args.last && :args_add == args.last[0]
+    if args.last && :args == args.last[0]
       args_add = args.pop
       call = on_call(*args)
       on_method_add_arg(call, args_add)
@@ -120,8 +132,16 @@ class Parser < Ripper
     end
   end
 
+  def on_fcall(*args)
+    [:fcall, *args]
+  end
+
   def on_args_add(sub, arg)
-    [:args_add, sub, arg]
+    if sub
+      sub + [arg]
+    else
+      [:args, arg].compact
+    end
   end
 
   def on_do_block(*args)
@@ -129,17 +149,19 @@ class Parser < Ripper
   end
 
   def on_method_add_block(method, body)
-    return unless method and body
-    if method[2] == 'class_eval'
+    return unless method
+    if 'class_eval' == method[2] && body
       [:class_eval, [
         method[1].is_a?(Array) ? method[1][0] : method[1],
         method[3]
       ], body.last]
-    elsif :call == method[0]
+    elsif :call == method[0] && body
       # augment the `Class.new/Struct.new` call with associated block
       call = method.dup
       call[4] = body.last
       call
+    else
+      super
     end
   end
 end
@@ -288,5 +310,7 @@ end
     end
     alias on_aref_field on_call
     alias on_field on_call
+    alias on_fcall on_call
+    alias on_args on_call
   end
 end
