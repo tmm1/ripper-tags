@@ -1,14 +1,11 @@
-require 'pp'
 require 'optparse'
 require 'ostruct'
-require 'ripper'
 require 'ripper-tags/tag_ripper'
 require 'ripper-tags/data_reader'
 require 'ripper-tags/default_formatter'
 require 'ripper-tags/emacs_formatter'
 require 'ripper-tags/vim_formatter'
 require 'ripper-tags/json_formatter'
-require 'yajl'
 
 options = OpenStruct.new(
   json: false,

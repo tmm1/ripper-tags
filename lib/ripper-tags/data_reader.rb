@@ -1,3 +1,5 @@
+require 'pp'
+
 class TagRipper
   class DataReader
 

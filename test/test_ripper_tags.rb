@@ -1,6 +1,5 @@
-require 'ripper'
-require File.expand_path('../../lib/ripper-tags/tag_ripper', __FILE__)
 require 'test/unit'
+require 'ripper-tags/tag_ripper'
 
 class TagRipperTest < Test::Unit::TestCase
   def test_extract_basics

@@ -1,3 +1,5 @@
+require 'yajl'
+
 class TagRipper
   class JSONFormatter
     def initialize(tags)
