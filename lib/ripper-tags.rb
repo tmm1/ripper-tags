@@ -8,6 +8,8 @@ require 'ripper-tags/vim_formatter'
 require 'ripper-tags/json_formatter'
 
 module RipperTags
+  def self.version() "0.1.2" end
+
   def self.default_options
     OpenStruct.new \
       json: false,
@@ -26,6 +28,7 @@ module RipperTags
   def self.option_parser(options)
     OptionParser.new do |opts|
       opts.banner = "Usage: #{opts.program_name} [options] FILES..."
+      opts.version = version
 
       opts.separator ""
 
@@ -45,7 +48,7 @@ module RipperTags
       opts.on("-R", "--recursive", "Descend recursively into given directory") do
         options.recursive = true
       end
-      opts.on("-V", "--vim", "Output vim optimized format to tags file") do
+      opts.on("--vim", "Output vim optimized format to tags file") do
         options.vim = true
       end
 
@@ -57,11 +60,15 @@ module RipperTags
       opts.on_tail("--debug-verbose", "Output parse tree verbosely") do
         options.verbose_debug = true
       end
-      opts.on_tail("-v", "--verbose", "Print additional information on stderr") do
+      opts.on_tail("-V", "--verbose", "Print additional information on stderr") do
         options.verbose = true
       end
       opts.on_tail("--force", "Skip files with parsing errors") do
         options.force = true
+      end
+      opts.on_tail("-v", "--version", "Print version information") do
+        puts opts.ver
+        exit
       end
 
       yield(opts, options) if block_given?
