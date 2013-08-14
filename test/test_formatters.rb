@@ -18,7 +18,7 @@ class FormattersTest < Test::Unit::TestCase
   end
 
   def test_default
-    default = formatter_for(tag_file_name: '-')
+    default = formatter_for(:tag_file_name => '-')
 
     tags = []
     tags << build_tag(:line => 1, :kind => 'class', :full_name => 'A::B', :inherits => 'C')
@@ -39,7 +39,7 @@ class FormattersTest < Test::Unit::TestCase
   end
 
   def test_vim
-    vim = formatter_for(vim: true)
+    vim = formatter_for(:vim => true)
     assert_equal %{C\t./script.rb\t/^class C < D$/;"\tc\tclass:A.B\tinherits:D}, vim.format(build_tag(
       :kind => 'class', :name => 'C',
       :pattern => "class C < D",

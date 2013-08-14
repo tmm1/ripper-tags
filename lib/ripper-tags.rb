@@ -12,17 +12,17 @@ module RipperTags
 
   def self.default_options
     OpenStruct.new \
-      json: false,
-      debug: false,
-      vim: false,
-      emacs: false,
-      tag_file_name: "./tags",
-      verbose_debug: false,
-      verbose: false,
-      force: false,
-      files: %w[.],
-      recursive: false,
-      all_files: false
+      :json => false,
+      :debug => false,
+      :vim => false,
+      :emacs => false,
+      :tag_file_name => "./tags",
+      :verbose_debug => false,
+      :verbose => false,
+      :force => false,
+      :files => %w[.],
+      :recursive => false,
+      :all_files => false
   end
 
   def self.option_parser(options)
