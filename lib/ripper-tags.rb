@@ -63,10 +63,6 @@ module RipperTags
       opts.on_tail("--force", "Skip files with parsing errors") do
         options.force = true
       end
-      opts.on_tail("-h", "--help", "Show this message") do
-        $stderr.puts opts
-        exit
-      end
 
       yield(opts, options) if block_given?
     end
