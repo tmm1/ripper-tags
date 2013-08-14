@@ -29,6 +29,6 @@ Usually, you want to either add a file on the command line or use the ``-R/--rec
 ### usage (api)
 
 ``` ruby
-require 'tag_ripper'
-tags = TagRipper.extract("def abc() end", "mycode.rb")
+require 'ripper-tags/parser'
+tags = RipperTags::Parser.extract("def abc() end", "mycode.rb")
 ```

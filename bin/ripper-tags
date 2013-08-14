@@ -1,11 +1,13 @@
 #!/usr/bin/env ruby
+require 'ripper-tags'
 
+trap(:INT) { abort }
+trap(:PIPE) { abort }
 
-$0 = 'ripper-tags'
+program_name = File.basename($0)
 
 begin
-  require 'ripper-tags'
-rescue LoadError
-  require 'rubygems'
-  require 'ripper-tags'
+  RipperTags.process_args(ARGV)
+rescue Errno::ENOENT, OptionParser::InvalidOption => err
+  abort "#{program_name}: #{err.message}"
 end

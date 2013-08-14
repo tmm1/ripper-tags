@@ -1,99 +1,110 @@
-require 'pp'
 require 'optparse'
 require 'ostruct'
-require 'ripper'
-require 'ripper-tags/tag_ripper'
+require 'ripper-tags/parser'
 require 'ripper-tags/data_reader'
 require 'ripper-tags/default_formatter'
 require 'ripper-tags/emacs_formatter'
 require 'ripper-tags/vim_formatter'
 require 'ripper-tags/json_formatter'
-require 'yajl'
 
-options = OpenStruct.new(
-  json: false,
-  debug: false,
-  vim: false,
-  emacs: false,
-  tag_file_name: "./tags",
-  verbose_debug: false,
-  verbose: false,
-  force: false,
-  files: %w[.],
-  recursive: false,
-  all_files: false
-)
+module RipperTags
+  def self.version() "0.1.2" end
 
-all_tags = []
+  def self.default_options
+    OpenStruct.new \
+      json: false,
+      debug: false,
+      vim: false,
+      emacs: false,
+      tag_file_name: "./tags",
+      verbose_debug: false,
+      verbose: false,
+      force: false,
+      files: %w[.],
+      recursive: false,
+      all_files: false
+  end
 
-opt_parse = OptionParser.new do |opts|
-  opts.banner = "Usage: ripper-tags [options] (file/directory)"
-  opts.separator ""
-  opts.on("-e", "--emacs", "Output emacs format to tags file") do
-    options.emacs = true
-  end
-  opts.on("-f", "--tag-file (FILE|-)", "Filename to output tags to, default #{options.tag_file_name}",
-         '"-" outputs to standard output') do |fname|
-    options.tag_file_name = fname
-  end
-  opts.on("-J", "--json", "Output nodes as json") do
-    options.json = true
-  end
-  opts.on("-A", "--all-files", "Parse all files as ruby files") do
-    options.all_files = true
-  end
-  opts.on("-R", "--recursive", "Descend recursively into given directory") do
-    options.recursive = true
-  end
-  opts.on("-V", "--vim", "Output vim optimized format to tags file") do
-    options.vim = true
-  end
-  opts.separator " "
-  opts.on_tail("-d", "--debug", "Output parse tree") do
-    options.debug = true
-  end
-  opts.on_tail("--debug-verbose", "Output parse tree verbosely") do
-    options.verbose_debug = true
-  end
-  opts.on_tail("-v", "--verbose", "Print additional information on stderr") do
-    options.verbose = true
-  end
-  opts.on_tail("--force", "Skip files with parsing errors") do
-    options.force = true
-  end
-  opts.on_tail("-h", "--help", "Show this message") do
-    $stderr.puts opts
-    exit
-  end
-end
-opt_parse.parse!(ARGV)
+  def self.option_parser(options)
+    OptionParser.new do |opts|
+      opts.banner = "Usage: #{opts.program_name} [options] FILES..."
+      opts.version = version
 
-if ARGV.size > 0
-  options.files = ARGV
-else
-  $stderr.puts opt_parse
-  exit
-end
+      opts.separator ""
 
-tags = TagRipper::DataReader.new(options).read.flatten
+      opts.on("-e", "--emacs", "Output emacs format to tags file") do
+        options.emacs = true
+      end
+      opts.on("-f", "--tag-file (FILE|-)", "Filename to output tags to, default #{options.tag_file_name}",
+             '"-" outputs to standard output') do |fname|
+        options.tag_file_name = fname
+      end
+      opts.on("-J", "--json", "Output nodes as json") do
+        options.json = true
+      end
+      opts.on("-A", "--all-files", "Parse all files as ruby files") do
+        options.all_files = true
+      end
+      opts.on("-R", "--recursive", "Descend recursively into given directory") do
+        options.recursive = true
+      end
+      opts.on("--vim", "Output vim optimized format to tags file") do
+        options.vim = true
+      end
 
+      opts.separator " "
 
-formatter = if options.vim
-              TagRipper::VimFormatter
-            elsif options.emacs
-              TagRipper::EmacsFormatter
-            elsif options.json
-              TagRipper::JSONFormatter
-            else
-              TagRipper::DefaultFormatter
-            end
+      opts.on_tail("-d", "--debug", "Output parse tree") do
+        options.debug = true
+      end
+      opts.on_tail("--debug-verbose", "Output parse tree verbosely") do
+        options.verbose_debug = true
+      end
+      opts.on_tail("-V", "--verbose", "Print additional information on stderr") do
+        options.verbose = true
+      end
+      opts.on_tail("--force", "Skip files with parsing errors") do
+        options.force = true
+      end
+      opts.on_tail("-v", "--version", "Print version information") do
+        puts opts.ver
+        exit
+      end
 
-if tags && !tags.empty?
-  if options.tag_file_name == '-'
-    $stdout.print(formatter.new(tags).build)
-  else
-    File.open(options.tag_file_name, "w+") do |tag_file|
-      tag_file.print(formatter.new(tags).build)
+      yield(opts, options) if block_given?
+    end
+  end
+
+  def self.process_args(argv, run = method(:run))
+    option_parser(default_options) do |optparse, options|
+      file_list = optparse.parse(argv)
+      if !file_list.empty? then options.files = file_list
+      elsif !options.recursive then abort(optparse.banner)
+      end
+      return run.call(options)
+    end
+  end
+
+  def self.formatter_for(options)
+    options.formatter ||
+    if options.vim
+      RipperTags::VimFormatter
+    elsif options.emacs
+      RipperTags::EmacsFormatter
+    elsif options.json
+      RipperTags::JSONFormatter
+    else
+      RipperTags::DefaultFormatter
+    end.new(options)
+  end
+
+  def self.run(options)
+    reader = RipperTags::DataReader.new(options)
+    formatter = formatter_for(options)
+    formatter.with_output do |out|
+      reader.each_tag do |tag|
+        formatter.write(tag, out)
+      end
     end
   end
 end
