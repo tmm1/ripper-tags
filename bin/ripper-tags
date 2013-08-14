@@ -6,4 +6,7 @@ rescue LoadError
   require 'ripper-tags'
 end
 
+trap(:INT) { abort }
+trap(:PIPE) { abort }
+
 RipperTags.process_args(ARGV)
