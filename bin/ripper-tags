@@ -1,33 +1,59 @@
 #!/usr/bin/env ruby
 
+require 'optparse'
 require 'tag_ripper'
 require 'pp'
 
-if ARGV.delete('--json')
-  require 'yajl'
-  json = true
-end
-if ARGV.delete('--debug')
-  debug = true
-end
-if ARGV.delete('--vim')
-  vim = true
-  all_tags = []
-end
-if ARGV.delete('--emacs')
-  emacs = true
-end
-if ARGV.delete('--debug-full')
-  debug_full = true
-end
-if ARGV.delete('--recurse')
-  recurse = true
-end
-if ARGV.delete('--only-rb')
-  only_ruby = true
-end
-if ARGV.delete('--ignore-errors')
-  ignore_errors = true
+json = false
+debug = false
+vim = false
+emacs = false
+debug_full = false
+recurse = false
+only_ruby = false
+ignore_errors = false
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: #{opts.program_name} [options] FILES..."
+
+  opts.version = "0.1.2"
+
+  opts.on("--json", "Output JSON") do |v|
+    require 'yajl'
+    json = v
+  end
+  opts.on("--vim", "Output Vim tags format") do |v|
+    vim = v
+  end
+  opts.on("--emacs", "Output Emacs etags format") do |v|
+    emacs = v
+  end
+
+  opts.on("-R", "--recurse", "Recurse into subdirectories") do |v|
+    recurse = v
+  end
+  opts.on("--only-rb", "Process only .rb files") do |v|
+    only_ruby = v
+  end
+
+  opts.on("-d", "--debug", "Output debugging info") do |v|
+    debug = v
+  end
+  opts.on("--debug-full", "Output raw SEXP") do |v|
+    debug_full = v
+  end
+
+  opts.on("--ignore-errors", "Ignore parsing errors") do |v|
+    ignore_errors = v
+  end
+
+  opts.on_tail("-v", "--version", "Show version") do
+    puts opts.version
+    exit
+  end
+
+  opts.parse!
+  abort(opts.banner) if ARGV.empty?
 end
 
 trap(:INT) { abort }
