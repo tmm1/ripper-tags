@@ -8,6 +8,6 @@ program_name = File.basename($0)
 
 begin
   RipperTags.process_args(ARGV)
-rescue OptionParser::InvalidOption => err
+rescue Errno::ENOENT, OptionParser::InvalidOption => err
   abort "#{program_name}: #{err.message}"
 end

@@ -41,9 +41,12 @@ module RipperTags
           elsif options.debug
             pp sexp
           end
-        rescue => e
-          $stderr.puts "Error parsing #{file}"
-          raise e unless options.force
+        rescue => err
+          if options.force
+            $stderr.puts "Error parsing `#{file}': #{err.message}"
+          else
+            raise err
+          end
         else
           visitor.tags.each do |tag|
             yield tag
