@@ -12,11 +12,9 @@ module RipperTags
 
   def self.default_options
     OpenStruct.new \
-      :json => false,
-      :debug => false,
-      :vim => false,
-      :emacs => false,
+      :format => nil,
       :tag_file_name => "./tags",
+      :debug => false,
       :verbose_debug => false,
       :verbose => false,
       :force => false,
@@ -32,27 +30,27 @@ module RipperTags
 
       opts.separator ""
 
-      opts.on("-e", "--emacs", "Output emacs format to tags file") do
-        options.emacs = true
-      end
-      opts.on("-f", "--tag-file (FILE|-)", "Filename to output tags to, default #{options.tag_file_name}",
+      opts.on("-f", "--tag-file (FILE|-)", "File to write tags to (default: `#{options.tag_file_name}')",
              '"-" outputs to standard output') do |fname|
         options.tag_file_name = fname
       end
-      opts.on("-J", "--json", "Output nodes as json") do
-        options.json = true
-      end
-      opts.on("-A", "--all-files", "Parse all files as ruby files") do
-        options.all_files = true
-      end
-      opts.on("-R", "--recursive", "Descend recursively into given directory") do
+      opts.on("-R", "--recursive", "Descend recursively into subdirectories") do
         options.recursive = true
       end
-      opts.on("--vim", "Output vim optimized format to tags file") do
-        options.vim = true
+      opts.on("--all-files", "Parse all files as ruby files, not just `*.rb' ones") do
+        options.all_files = true
       end
 
       opts.separator " "
+
+      opts.on("--format (emacs|json|custom)", "Set output format (default: vim)") do |fmt|
+        options.format = fmt
+      end
+      opts.on("-e", "--emacs", "Output Emacs format (default if `--tag-file' is `TAGS')") do
+        options.format = "emacs"
+      end
+
+      opts.separator ""
 
       opts.on_tail("-d", "--debug", "Output parse tree") do
         options.debug = true
@@ -81,20 +79,19 @@ module RipperTags
       if !file_list.empty? then options.files = file_list
       elsif !options.recursive then abort(optparse.banner)
       end
+      options.format ||= File.basename(options.tag_file_name) == "TAGS" ? "emacs" : "vim"
       return run.call(options)
     end
   end
 
   def self.formatter_for(options)
     options.formatter ||
-    if options.vim
-      RipperTags::VimFormatter
-    elsif options.emacs
-      RipperTags::EmacsFormatter
-    elsif options.json
-      RipperTags::JSONFormatter
-    else
-      RipperTags::DefaultFormatter
+    case options.format
+    when "vim"    then RipperTags::VimFormatter
+    when "emacs"  then RipperTags::EmacsFormatter
+    when "json"   then RipperTags::JSONFormatter
+    when "custom" then RipperTags::DefaultFormatter
+    else raise ArgumentError, "unknown format: #{options.format.inspect}"
     end.new(options)
   end
 
