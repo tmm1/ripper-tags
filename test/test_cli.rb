@@ -18,6 +18,13 @@ class CliTest < Test::Unit::TestCase
     assert_equal "Usage: ripper-tags [options] FILES...", err.message
   end
 
+  def test_invalid_option
+    err = assert_raise(OptionParser::InvalidOption) do
+      RipperTags.process_args(%[--moo])
+    end
+    assert_equal "invalid option: --moo", err.message
+  end
+
   def test_recurse_defaults_to_current_dir
     options = process_args(%w[-R])
     assert_equal true, options.recursive

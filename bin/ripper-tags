@@ -4,4 +4,10 @@ require 'ripper-tags'
 trap(:INT) { abort }
 trap(:PIPE) { abort }
 
-RipperTags.process_args(ARGV)
+program_name = File.basename($0)
+
+begin
+  RipperTags.process_args(ARGV)
+rescue OptionParser::InvalidOption => err
+  abort "#{program_name}: #{err.message}"
+end
