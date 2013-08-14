@@ -30,6 +30,8 @@ if ARGV.delete('--ignore-errors')
   ignore_errors = true
 end
 
+trap(:PIPE) { abort }
+
 ARGV.each do |file|
   begin
     if File.directory?(file) and recurse
@@ -82,7 +84,7 @@ ARGV.each do |file|
         puts "#{tag[:line].to_s.rjust(5)}  #{kind.to_s.rjust(6)}   #{tag[:full_name]}#{suffix}"
       end
     end
-  rescue Exception => e
+  rescue => e
     unless ignore_errors
       STDERR.puts [e, file].inspect
       raise e
