@@ -66,7 +66,7 @@ class Parser < Ripper
 
   def on_command(name, *args)
     case name[0]
-    when "define_method", "alias_method"
+    when "define_method", "alias_method", /^attr_(accessor|reader|writer)$/
       on_method_add_arg([:fcall, name], args[0])
     end
   end
@@ -115,6 +115,14 @@ class Parser < Ripper
         [:alias, args[1][0], args[2][0], line]
       when "define_method"
         [:def, args[1][0], line]
+      when /^attr_(accessor|reader|writer)$/
+        gen_reader = $1 != 'writer'
+        gen_writer = $1 != 'reader'
+        args[1..-1].inject([]) do |gen, arg|
+          gen << [:def, arg[0], line] if gen_reader
+          gen << [:def, "#{arg[0]}=", line] if gen_writer
+          gen
+        end
       end
     else
       super

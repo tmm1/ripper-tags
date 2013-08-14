@@ -176,4 +176,22 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal '2: alias M#imethod < foo', inspect(tags[1])
     assert_equal '3: alias M#imethod < foo', inspect(tags[2])
   end
+
+  def test_extract_attr_accessor
+    tags = extract(<<-EOC)
+      module M
+        attr_accessor :a, :b
+        attr_reader(:a, :b)
+        attr_writer(:a, :b)
+      end
+    EOC
+    assert_equal '2: method M#a',  inspect(tags[1])
+    assert_equal '2: method M#a=', inspect(tags[2])
+    assert_equal '2: method M#b',  inspect(tags[3])
+    assert_equal '2: method M#b=', inspect(tags[4])
+    assert_equal '3: method M#a',  inspect(tags[5])
+    assert_equal '3: method M#b',  inspect(tags[6])
+    assert_equal '4: method M#a=', inspect(tags[7])
+    assert_equal '4: method M#b=', inspect(tags[8])
+  end
 end
