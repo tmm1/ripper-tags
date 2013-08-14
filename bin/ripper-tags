@@ -30,6 +30,7 @@ if ARGV.delete('--ignore-errors')
   ignore_errors = true
 end
 
+trap(:INT) { abort }
 trap(:PIPE) { abort }
 
 ARGV.each do |file|
