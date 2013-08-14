@@ -96,10 +96,10 @@ module RipperTags
   end
 
   def self.run(options)
-    tags = RipperTags::DataReader.new(options).read.flatten
+    reader = RipperTags::DataReader.new(options)
     formatter = formatter_for(options)
     formatter.with_output do |out|
-      tags.each do |tag|
+      reader.each_tag do |tag|
         formatter.write(tag, out)
       end
     end
