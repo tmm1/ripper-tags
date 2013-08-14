@@ -66,7 +66,11 @@ class Parser < Ripper
 
   def on_command(name, *args)
     case name[0]
-    when "define_method", "alias_method", /^attr_(accessor|reader|writer)$/
+    when "define_method", "alias_method",
+         "has_one", "has_many",
+         "belongs_to", "has_and_belongs_to_many",
+         "scope", "named_scope",
+         /^attr_(accessor|reader|writer)$/
       on_method_add_arg([:fcall, name], args[0])
     end
   end
@@ -115,6 +119,8 @@ class Parser < Ripper
         [:alias, args[1][0], args[2][0], line]
       when "define_method"
         [:def, args[1][0], line]
+      when "scope", "named_scope"
+        [:rails_def, :scope, args[1][0], line]
       when /^attr_(accessor|reader|writer)$/
         gen_reader = $1 != 'writer'
         gen_writer = $1 != 'reader'
@@ -122,6 +128,24 @@ class Parser < Ripper
           gen << [:def, arg[0], line] if gen_reader
           gen << [:def, "#{arg[0]}=", line] if gen_writer
           gen
+        end
+      when "has_many", "has_and_belongs_to_many"
+        a = args[1][0]
+        kind = name.to_sym
+        gen = []
+        gen << [:rails_def, kind, a, line]
+        gen << [:rails_def, kind, "#{a}=", line]
+        if (sing = a.chomp('s')) != a
+          # poor man's singularize
+          gen << [:rails_def, kind, "#{sing}_ids", line]
+          gen << [:rails_def, kind, "#{sing}_ids=", line]
+        end
+        gen
+      when "belongs_to", "has_one"
+        a = args[1][0]
+        kind = name.to_sym
+        %W[ #{a} #{a}= build_#{a} create_#{a} create_#{a}! ].inject([]) do |gen, ident|
+          gen << [:rails_def, kind, ident, line]
         end
       end
     else
@@ -187,14 +211,14 @@ end
     end
 
     def emit_tag(kind, line, opts={})
-      @tags << opts.merge(
+      @tags << {
         :kind => kind.to_s,
         :line => line,
         :language => 'Ruby',
         :path => @path,
         :pattern => @lines[line-1].chomp,
         :access => @current_access
-      ).delete_if{ |k,v| v.nil? }
+      }.update(opts).delete_if{ |k,v| v.nil? }
     end
 
     def process(sexp)
@@ -294,6 +318,16 @@ end
         :name => name,
         :full_name => ns.join('::') + ".#{name}",
         :class => ns.join('::')
+    end
+
+    def on_rails_def(kind, name, line)
+      ns = (@namespace.empty?? 'Object' : @namespace.join('::'))
+
+      emit_tag kind, line,
+        :language => 'Rails',
+        :name => name,
+        :full_name => "#{ns}.#{name}",
+        :class => ns
     end
 
     def on_sclass(name, body)

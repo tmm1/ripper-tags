@@ -194,4 +194,51 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal '4: method M#a=', inspect(tags[7])
     assert_equal '4: method M#b=', inspect(tags[8])
   end
+
+  def test_extract_rails_associations
+    tags = extract(<<-EOC)
+      class C
+        belongs_to :org, :touch => true
+        has_one :author, :dependent => :destroy
+        has_many :posts
+        has_and_belongs_to_many :tags, :join_table => 'c_tags'
+      end
+    EOC
+    assert_equal 'Rails', tags[1][:language]
+
+    assert_equal '2: belongs_to C.org', inspect(tags[1])
+    assert_equal '2: belongs_to C.org=', inspect(tags[2])
+    assert_equal '2: belongs_to C.build_org', inspect(tags[3])
+    assert_equal '2: belongs_to C.create_org', inspect(tags[4])
+    assert_equal '2: belongs_to C.create_org!', inspect(tags[5])
+
+    assert_equal '3: has_one C.author', inspect(tags[6])
+    assert_equal '3: has_one C.author=', inspect(tags[7])
+    assert_equal '3: has_one C.build_author', inspect(tags[8])
+    assert_equal '3: has_one C.create_author', inspect(tags[9])
+    assert_equal '3: has_one C.create_author!', inspect(tags[10])
+
+    assert_equal '4: has_many C.posts', inspect(tags[11])
+    assert_equal '4: has_many C.posts=', inspect(tags[12])
+    assert_equal '4: has_many C.post_ids', inspect(tags[13])
+    assert_equal '4: has_many C.post_ids=', inspect(tags[14])
+
+    assert_equal '5: has_and_belongs_to_many C.tags', inspect(tags[15])
+    assert_equal '5: has_and_belongs_to_many C.tags=', inspect(tags[16])
+    assert_equal '5: has_and_belongs_to_many C.tag_ids', inspect(tags[17])
+    assert_equal '5: has_and_belongs_to_many C.tag_ids=', inspect(tags[18])
+  end
+
+  def test_extract_rails_scopes
+    tags = extract(<<-EOC)
+      class C
+        named_scope(:red) { {:conditions=>{:color => 'red'}} }
+        scope :red, where(:color => 'red')
+      end
+    EOC
+    assert_equal 'Rails', tags[1][:language]
+
+    assert_equal '2: scope C.red',  inspect(tags[1])
+    assert_equal '3: scope C.red',  inspect(tags[2])
+  end
 end
