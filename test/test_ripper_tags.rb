@@ -95,6 +95,17 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal 'public',    tags.find{ |t| t[:name] == 'jkl' }[:access]
   end
 
+  def test_extract_module_eval
+    tags = extract(<<-EOC)
+      M.module_eval do
+        class C; end
+        def imethod; end
+      end
+    EOC
+    assert_equal '2: class M::C', inspect(tags[0])
+    assert_equal '3: method M#imethod', inspect(tags[1])
+  end
+
   def test_extract_manual_subclass
     tags = extract(<<-EOC)
       module M
