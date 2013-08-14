@@ -1,6 +1,7 @@
 require 'pp'
+require 'ripper-tags/parser'
 
-class TagRipper
+module RipperTags
   class DataReader
 
     attr_reader :options
@@ -34,8 +35,8 @@ class TagRipper
         if x = parse_file?(file, data)
           $stderr.puts "Parsing file #{file}" if options.verbose
           begin
-            sexp = TagRipper.new(data, file).parse
-            v = TagRipper::Visitor.new(sexp, file, data)
+            sexp = Parser.new(data, file).parse
+            v = Visitor.new(sexp, file, data)
             if options.verbose_debug
               pp Ripper.sexp(data)
             elsif options.debug

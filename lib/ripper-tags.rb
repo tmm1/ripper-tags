@@ -1,6 +1,6 @@
 require 'optparse'
 require 'ostruct'
-require 'ripper-tags/tag_ripper'
+require 'ripper-tags/parser'
 require 'ripper-tags/data_reader'
 require 'ripper-tags/default_formatter'
 require 'ripper-tags/emacs_formatter'
@@ -72,17 +72,17 @@ else
   exit
 end
 
-tags = TagRipper::DataReader.new(options).read.flatten
+tags = RipperTags::DataReader.new(options).read.flatten
 
 
 formatter = if options.vim
-              TagRipper::VimFormatter
+              RipperTags::VimFormatter
             elsif options.emacs
-              TagRipper::EmacsFormatter
+              RipperTags::EmacsFormatter
             elsif options.json
-              TagRipper::JSONFormatter
+              RipperTags::JSONFormatter
             else
-              TagRipper::DefaultFormatter
+              RipperTags::DefaultFormatter
             end
 
 if tags && !tags.empty?

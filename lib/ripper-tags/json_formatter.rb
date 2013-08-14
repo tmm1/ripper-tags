@@ -1,6 +1,6 @@
 require 'yajl'
 
-class TagRipper
+module RipperTags
   class JSONFormatter
     def initialize(tags)
       @tags = tags

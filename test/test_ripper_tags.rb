@@ -1,9 +1,13 @@
 require 'test/unit'
-require 'ripper-tags/tag_ripper'
+require 'ripper-tags/parser'
 
 class TagRipperTest < Test::Unit::TestCase
+  def extract(code)
+    RipperTags::Parser.extract(code)
+  end
+
   def test_extract_basics
-    tags = TagRipper.extract(<<-EOC)
+    tags = extract(<<-EOC)
       Const1 = 123
       def gmethod
       end
@@ -63,7 +67,7 @@ class TagRipperTest < Test::Unit::TestCase
   end
 
   def test_extract_access
-    tags = TagRipper.extract(<<-EOC)
+    tags = extract(<<-EOC)
       class Test
         def abc() end
       private

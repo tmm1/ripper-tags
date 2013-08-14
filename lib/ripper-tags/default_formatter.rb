@@ -1,4 +1,4 @@
-class TagRipper
+module RipperTags
   class DefaultFormatter
     def initialize(tags)
       @tags = tags

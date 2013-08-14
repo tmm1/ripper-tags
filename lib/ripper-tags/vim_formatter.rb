@@ -1,4 +1,4 @@
-class TagRipper
+module RipperTags
   class VimFormatter
     def header
       <<-EOC

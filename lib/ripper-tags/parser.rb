@@ -1,6 +1,8 @@
 require 'ripper'
 
-class TagRipper < Ripper
+module RipperTags
+
+class Parser < Ripper
   def self.extract(data, file='(eval)')
     sexp = new(data, file).parse
     Visitor.new(sexp, file, data).tags
@@ -104,6 +106,7 @@ class TagRipper < Ripper
       ], body.last]
     end
   end
+end
 
   class Visitor
     attr_reader :tags
