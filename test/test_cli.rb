@@ -31,6 +31,12 @@ class CliTest < Test::Unit::TestCase
     assert_equal %w[.], options.files
   end
 
+  def test_TAGS_triggers_to_emacs_format
+    options = process_args(%w[-f ./TAGS script.rb])
+    assert_equal './TAGS', options.tag_file_name
+    assert_equal 'emacs', options.format
+  end
+
   def with_program_name(name)
     old_name = $0
     $0 = name
