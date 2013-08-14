@@ -5,3 +5,5 @@ rescue LoadError
   require 'rubygems'
   require 'ripper-tags'
 end
+
+RipperTags.process_args(ARGV)
