@@ -1,8 +1,4 @@
 #!/usr/bin/env ruby
-
-
-$0 = 'ripper-tags'
-
 begin
   require 'ripper-tags'
 rescue LoadError

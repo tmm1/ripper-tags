@@ -24,7 +24,7 @@ options = OpenStruct.new(
 all_tags = []
 
 opt_parse = OptionParser.new do |opts|
-  opts.banner = "Usage: ripper-tags [options] (file/directory)"
+  opts.banner = "Usage: #{opts.program_name} [options] FILES..."
   opts.separator ""
   opts.on("-e", "--emacs", "Output emacs format to tags file") do
     options.emacs = true
