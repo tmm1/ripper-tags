@@ -25,10 +25,22 @@ module RipperTags
     end
 
     def read_file(filename)
-      File.read(filename)
+      str = File.open(filename, 'r:utf-8') {|f| f.read }
+      normalize_encoding(str)
+    end
+
+    def normalize_encoding(str)
+      if str.respond_to?(:encode!)
+        # strip invalid byte sequences
+        str.encode!('utf-16', :invalid => :replace, :undef => :replace)
+        str.encode!('utf-8')
+      else
+        str
+      end
     end
 
     def each_tag
+      return to_enum(__method__) unless block_given?
       find_files.each do |file|
         next unless parse_file?(file)
         begin
