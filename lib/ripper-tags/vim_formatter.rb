@@ -26,11 +26,11 @@ module RipperTags
     end
 
     def display_constant(const)
-      const.gsub('::', '.')
+      const.to_s.gsub('::', '.')
     end
 
     def display_pattern(tag)
-      tag.fetch(:pattern).gsub('\\','\\\\\\\\').gsub('/','\\/')
+      tag.fetch(:pattern).to_s.gsub('\\','\\\\\\\\').gsub('/','\\/')
     end
 
     def display_class(tag)
