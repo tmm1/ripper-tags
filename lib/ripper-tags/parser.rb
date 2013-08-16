@@ -124,7 +124,7 @@ end
       @tags << opts.merge(
         :kind => kind.to_s,
         :line => line,
-        :language => 'Ruby',
+        :language => :Ruby,
         :path => @path,
         :pattern => @lines[line-1].chomp,
         :access => @current_access
