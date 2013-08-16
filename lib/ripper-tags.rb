@@ -20,6 +20,7 @@ module RipperTags
       :force => false,
       :files => %w[.],
       :recursive => false,
+      :exclude => %w[.git],
       :all_files => false
   end
 
@@ -36,6 +37,13 @@ module RipperTags
       end
       opts.on("-R", "--recursive", "Descend recursively into subdirectories") do
         options.recursive = true
+      end
+      opts.on("--exclude PATTERN", "Exclude a file, directory or pattern") do |pattern|
+        if pattern.empty?
+          options.exclude.clear
+        else
+          options.exclude << pattern
+        end
       end
       opts.on("--all-files", "Parse all files as ruby files, not just `*.rb' ones") do
         options.all_files = true

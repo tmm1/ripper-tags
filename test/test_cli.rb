@@ -31,6 +31,16 @@ class CliTest < Test::Unit::TestCase
     assert_equal %w[.], options.files
   end
 
+  def test_exclude_add_patterns
+    options = process_args(%w[-R --exclude vendor --exclude=bundle/*])
+    assert_equal %w[.git vendor bundle/*], options.exclude
+  end
+
+  def test_exclude_clear
+    options = process_args(%w[-R --exclude=])
+    assert_equal [], options.exclude
+  end
+
   def test_TAGS_triggers_to_emacs_format
     options = process_args(%w[-f ./TAGS script.rb])
     assert_equal './TAGS', options.tag_file_name

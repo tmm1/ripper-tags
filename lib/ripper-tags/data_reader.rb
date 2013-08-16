@@ -2,26 +2,72 @@ require 'pp'
 require 'ripper-tags/parser'
 
 module RipperTags
-  class DataReader
-
+  class FileFinder
     attr_reader :options
 
     def initialize(options)
       @options = options
     end
 
-    def find_files
-      options.files.inject([]) do |files, file_or_directory|
-        if options.recursive && File.directory?(file_or_directory)
-          files << Dir["#{file_or_directory}/**/*"]
+    def exclude_patterns
+      @exclude ||= Array(options.exclude).map { |pattern|
+        if pattern.index('*')
+          Regexp.new(Regexp.escape(pattern).gsub('\\*', '[^/]+'))
         else
-          files << file_or_directory
+          pattern
         end
-      end.flatten
+      }
     end
 
-    def parse_file?(filename)
-      options.all_files || filename.end_with?('.rb')
+    def exclude_file?(file)
+      base = File.basename(file)
+      exclude_patterns.any? {|ex|
+        case ex
+        when Regexp then base =~ ex
+        else base == ex
+        end
+      } || exclude_patterns.any? {|ex|
+        case ex
+        when Regexp then file =~ ex
+        else file.include?(ex)
+        end
+      }
+    end
+
+    def include_file?(file)
+      (options.all_files || file =~ /\.rb\z/) && !exclude_file?(file)
+    end
+
+    def find_files(list, depth = 0)
+      list.each do |file|
+        if File.directory?(file)
+          if options.recursive
+            files = Dir.entries(file).map { |name|
+              File.join(file, name) unless '.' == name || '..' == name
+            }.compact
+            find_files(files, depth + 1) {|f| yield f }
+          end
+        else
+          yield file if include_file?(file)
+        end
+      end
+    end
+
+    def each_file
+      return to_enum(__method__) unless block_given?
+      find_files(options.files) {|f| yield f }
+    end
+  end
+
+  class DataReader
+    attr_reader :options
+
+    def initialize(options)
+      @options = options
+    end
+
+    def file_finder
+      FileFinder.new(options)
     end
 
     def read_file(filename)
@@ -41,8 +87,7 @@ module RipperTags
 
     def each_tag
       return to_enum(__method__) unless block_given?
-      find_files.each do |file|
-        next unless parse_file?(file)
+      file_finder.each_file do |file|
         begin
           $stderr.puts "Parsing file #{file}" if options.verbose
           file_contents = read_file(file)
@@ -65,7 +110,6 @@ module RipperTags
           end
         end
       end
-      nil
     end
   end
 end
