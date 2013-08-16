@@ -17,6 +17,7 @@ module RipperTags
       :debug => false,
       :verbose_debug => false,
       :verbose => false,
+      :detail_error => false,
       :force => false,
       :files => %w[.],
       :recursive => false,
@@ -60,6 +61,9 @@ module RipperTags
       end
       opts.on_tail("-V", "--verbose", "Print additional information on stderr") do
         options.verbose = true
+      end
+      opts.on_tail("--detail-error", "Output debugging information on parser errors") do
+        options.detail_error = true
       end
       opts.on_tail("--force", "Skip files with parsing errors") do
         options.force = true
