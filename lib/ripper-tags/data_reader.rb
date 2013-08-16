@@ -42,7 +42,7 @@ module RipperTags
             pp sexp
           end
         rescue => err
-          $stderr.puts "Error parsing `#{file}': #{err.message}"
+          $stderr.puts "Error parsing #{File.expand_path(file)} - #{err.message}"
           if options.detail_error
             $stderr.puts "File dump:"
             PP.pp(Ripper.sexp(file_contents), $stderr)
