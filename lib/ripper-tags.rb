@@ -14,6 +14,7 @@ module RipperTags
     OpenStruct.new \
       :format => nil,
       :tag_file_name => "./tags",
+      :tag_relative => nil,
       :debug => false,
       :verbose_debug => false,
       :verbose => false,
@@ -34,6 +35,9 @@ module RipperTags
       opts.on("-f", "--tag-file (FILE|-)", "File to write tags to (default: `#{options.tag_file_name}')",
              '"-" outputs to standard output') do |fname|
         options.tag_file_name = fname
+      end
+      opts.on("--tag-relative", "Make file paths relative to the directory of the tag file") do
+        options.tag_relative = true
       end
       opts.on("-R", "--recursive", "Descend recursively into subdirectories") do
         options.recursive = true
@@ -88,6 +92,7 @@ module RipperTags
       elsif !options.recursive then abort(optparse.banner)
       end
       options.format ||= File.basename(options.tag_file_name) == "TAGS" ? "emacs" : "vim"
+      options.tag_relative = options.format == "emacs" if options.tag_relative.nil?
       return run.call(options)
     end
   end

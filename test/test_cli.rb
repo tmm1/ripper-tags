@@ -47,6 +47,21 @@ class CliTest < Test::Unit::TestCase
     assert_equal 'emacs', options.format
   end
 
+  def test_tag_relative_off_by_default
+    options = process_args(%w[ -R ])
+    assert_equal false, options.tag_relative
+  end
+
+  def test_tag_relative_on
+    options = process_args(%w[ -R --tag-relative ])
+    assert_equal true, options.tag_relative
+  end
+
+  def test_tag_relative_on_for_emacs
+    options = process_args(%w[ -R -e ])
+    assert_equal true, options.tag_relative
+  end
+
   def with_program_name(name)
     old_name = $0
     $0 = name
