@@ -62,6 +62,18 @@ class FormattersTest < Test::Unit::TestCase
     ))
   end
 
+  def test_relative
+    formatter = formatter_for(:format => 'custom', :tag_file_name => '.git/tags', :tag_relative => true)
+    tag = build_tag(:path => 'path/to/script.rb')
+    assert_equal '../path/to/script.rb', formatter.relative_path(tag)
+  end
+
+  def test_no_relative
+    formatter = formatter_for(:format => 'custom', :tag_file_name => '.git/tags')
+    tag = build_tag(:path => 'path/to/script.rb')
+    assert_equal 'path/to/script.rb', formatter.relative_path(tag)
+  end
+
   def capture_stdout
     old_stdout, $stdout = $stdout, StringIO.new
     begin

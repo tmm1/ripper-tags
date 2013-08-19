@@ -14,12 +14,14 @@ module RipperTags
     OpenStruct.new \
       :format => nil,
       :tag_file_name => "./tags",
+      :tag_relative => nil,
       :debug => false,
       :verbose_debug => false,
       :verbose => false,
       :force => false,
       :files => %w[.],
       :recursive => false,
+      :exclude => %w[.git],
       :all_files => false
   end
 
@@ -34,8 +36,18 @@ module RipperTags
              '"-" outputs to standard output') do |fname|
         options.tag_file_name = fname
       end
+      opts.on("--tag-relative", "Make file paths relative to the directory of the tag file") do
+        options.tag_relative = true
+      end
       opts.on("-R", "--recursive", "Descend recursively into subdirectories") do
         options.recursive = true
+      end
+      opts.on("--exclude PATTERN", "Exclude a file, directory or pattern") do |pattern|
+        if pattern.empty?
+          options.exclude.clear
+        else
+          options.exclude << pattern
+        end
       end
       opts.on("--all-files", "Parse all files as ruby files, not just `*.rb' ones") do
         options.all_files = true
@@ -80,6 +92,7 @@ module RipperTags
       elsif !options.recursive then abort(optparse.banner)
       end
       options.format ||= File.basename(options.tag_file_name) == "TAGS" ? "emacs" : "vim"
+      options.tag_relative = options.format == "emacs" if options.tag_relative.nil?
       return run.call(options)
     end
   end

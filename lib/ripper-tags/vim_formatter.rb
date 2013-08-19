@@ -61,7 +61,7 @@ module RipperTags
     def format(tag)
       "%s\t%s\t/^%s$/;\"\t%s%s%s" % [
         tag.fetch(:name),
-        tag.fetch(:path),
+        relative_path(tag),
         display_pattern(tag),
         display_kind(tag),
         display_class(tag),

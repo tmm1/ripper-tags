@@ -1,3 +1,5 @@
+require 'pathname'
+
 module RipperTags
   class DefaultFormatter
     attr_reader :options
@@ -6,13 +8,30 @@ module RipperTags
       @options = options
     end
 
+    def stdout?
+      '-' == options.tag_file_name
+    end
+
     def with_output
-      if '-' == options.tag_file_name
+      if stdout?
         yield $stdout
       else
         File.open(options.tag_file_name, 'w+') do |outfile|
           yield outfile
         end
+      end
+    end
+
+    def tag_file_dir
+      @tag_file_dir ||= Pathname.new(options.tag_file_name).dirname
+    end
+
+    def relative_path(tag)
+      path = tag.fetch(:path)
+      if options.tag_relative && !stdout? && path.index('/') != 0
+        Pathname.new(path).relative_path_from(tag_file_dir).to_s
+      else
+        path
       end
     end
 
