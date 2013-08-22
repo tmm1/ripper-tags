@@ -52,7 +52,7 @@ module RipperTags
     end
 
     def format(tag)
-      "%5s  %6s   %s%s" % [
+      "%5s  %8s   %s%s" % [
         tag.fetch(:line).to_s,
         display_kind(tag),
         tag.fetch(:full_name),
