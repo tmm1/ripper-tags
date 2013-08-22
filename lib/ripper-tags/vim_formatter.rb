@@ -54,6 +54,8 @@ module RipperTags
       when 'method' then 'f'
       when 'singleton method' then 'F'
       when 'constant' then 'C'
+      when 'scope', 'belongs_to', 'has_one', 'has_many', 'has_and_belongs_to_many'
+        'F'
       else tag[:kind].slice(0,1)
       end
     end
