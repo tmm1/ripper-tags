@@ -136,4 +136,18 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal '5: class M::C < SuperClass', inspect(tags[3])
     assert_equal '6: method M::C#imethod', inspect(tags[4])
   end
+
+  def test_extract_manual_module
+    tags = extract(<<-EOC)
+      class C
+        M = Module.new
+        M = Module.new do
+          def imethod; end
+        end
+      end
+    EOC
+    assert_equal '2: module C::M', inspect(tags[1])
+    assert_equal '3: module C::M', inspect(tags[2])
+    assert_equal '4: method C::M#imethod', inspect(tags[3])
+  end
 end

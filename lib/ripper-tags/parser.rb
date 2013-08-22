@@ -225,10 +225,11 @@ end
     def on_assign(name, rhs, line)
       return unless name =~ /^[A-Z]/
 
-      if rhs && :call == rhs[0] && rhs[1] && "#{rhs[1][0]}.#{rhs[2]}" =~ /^(Class|Struct)\.new$/
+      if rhs && :call == rhs[0] && rhs[1] && "#{rhs[1][0]}.#{rhs[2]}" =~ /^(Class|Module|Struct)\.new$/
+        kind = $1 == 'Module' ? :module : :class
         superclass = $1 == 'Class' ? rhs[3] : nil
         superclass.flatten! if superclass
-        return on_module_or_class(:class, [name, line], superclass, rhs[4])
+        return on_module_or_class(kind, [name, line], superclass, rhs[4])
       end
 
       emit_tag :constant, line,
