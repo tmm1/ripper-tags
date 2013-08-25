@@ -35,7 +35,7 @@ class Parser < Ripper
     [:defs, receiver && receiver[0], *method]
   end
   def on_alias(lhs, rhs)
-    [:alias, lhs[0], rhs[0], rhs[1]]
+    [:alias, lhs[0], rhs[0], rhs[1]] if lhs && rhs
   end
   def on_assign(lhs, rhs)
     return if lhs.nil?
@@ -87,6 +87,20 @@ class Parser < Ripper
   end
   alias on_if_mod on_unless_mod
 
+  def on_dyna_symbol(*args)
+    if args.length == 1 && args[0]
+      [args[0], lineno]
+    end
+  end
+
+  def on_tstring_content(str)
+    str
+  end
+
+  def on_xstring_add(first, arg)
+    arg if first.nil?
+  end
+
   def on_var_ref(*args)
     on_vcall(*args) || args
   end
@@ -116,7 +130,7 @@ class Parser < Ripper
       name, line = call[1]
       case name
       when "alias_method"
-        [:alias, args[1][0], args[2][0], line]
+        [:alias, args[1][0], args[2][0], line] if args[1] && args[2]
       when "define_method"
         [:def, args[1][0], line]
       when "scope", "named_scope"
@@ -265,7 +279,7 @@ end
       @namespace.pop
     end
 
-    def on_module(name, body)
+    def on_module(name, body = nil)
       on_module_or_class(:module, name, nil, body)
     end
 

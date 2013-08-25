@@ -177,6 +177,39 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal '6: method M#imethod', inspect(tags[3])
   end
 
+  def test_ignore_dynamic_define_method
+    tags = extract(<<-EOC)
+      module M
+        define_method(:"imethod_\#{i}") { |arg| }
+        define_method("imethod_\#{i}") { |arg| }
+      end
+    EOC
+    assert_equal 1, tags.length
+  end
+
+  def test_extract_alias
+    tags = extract(<<-EOC)
+      module M
+        alias :"[]" :get
+        alias :"[]=" :set
+        alias :set :"[]="
+      end
+    EOC
+    assert_equal '2: alias M#[] < get', inspect(tags[1])
+    assert_equal '3: alias M#[]= < set', inspect(tags[2])
+    assert_equal '4: alias M#set < []=', inspect(tags[3])
+  end
+
+  def test_ignore_dynamic_alias
+    tags = extract(<<-EOC)
+      module M
+        alias :"imethod_\#{i}" :foo
+        alias "imethod_\#{i}" :foo
+      end
+    EOC
+    assert_equal 1, tags.length
+  end
+
   def test_extract_alias_method
     tags = extract(<<-EOC)
       module M
@@ -186,6 +219,16 @@ class TagRipperTest < Test::Unit::TestCase
     EOC
     assert_equal '2: alias M#imethod < foo', inspect(tags[1])
     assert_equal '3: alias M#imethod < foo', inspect(tags[2])
+  end
+
+  def test_ignore_dynamic_alias_method
+    tags = extract(<<-EOC)
+      module M
+        alias_method :"imethod_\#{i}", :foo
+        alias_method "imethod_\#{i}", :foo
+      end
+    EOC
+    assert_equal 1, tags.length
   end
 
   def test_extract_attr_accessor
