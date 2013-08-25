@@ -32,9 +32,9 @@ class FormattersTest < Test::Unit::TestCase
     end
 
     assert_equal <<-OUT, output
-    1   class   A::B < C
-    2     def   A::B#imethod
-    3     def   A::B.smethod
+    1     class   A::B < C
+    2       def   A::B#imethod
+    3       def   A::B.smethod
     OUT
   end
 
