@@ -247,6 +247,7 @@ end
         superclass_name = superclass[0] == :call ?
           superclass[1] :
           superclass[0]
+        superclass_name = nil unless superclass_name =~ /^[A-Z]/
       end
       full_name = @namespace.join('::')
       parts = full_name.split('::')
