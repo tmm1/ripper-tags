@@ -62,6 +62,40 @@ class FormattersTest < Test::Unit::TestCase
     ))
   end
 
+  def test_emacs
+    emacs = formatter_for(:format => 'emacs')
+    assert_equal %{  class C < D\x7FC\x015,0}, emacs.format(build_tag(
+      :kind => 'class', :name => 'C',
+      :pattern => "  class C < D", :line => 5,
+      :class => 'A::B', :inherits => 'D'
+    ))
+  end
+
+  def test_emacs_file_section_headers
+    emacs = formatter_for(:format => 'emacs', :tag_file_name => '-')
+
+    tags = []
+    tags << build_tag(:line => 1, :path => 'path/to/source.rb', :name => 'imethod', :pattern => 'def imethod')
+    tags << build_tag(:line => 2, :path => 'path/to/source.rb', :name => 'smethod', :pattern => 'def self.smethod')
+    tags << build_tag(:line => 3, :path => 'path/to/another.rb', :name => 'imethod', :pattern => 'def imethod')
+
+    output = capture_stdout do
+      emacs.with_output do |out|
+        tags.each { |tag| emacs.write(tag, out) }
+      end
+    end
+
+    assert_equal <<-OUT, output
+\x0C
+path/to/source.rb,53
+def imethod\x7Fimethod\x011,0
+def self.smethod\x7Fsmethod\x012,0
+\x0C
+path/to/another.rb,24
+def imethod\x7Fimethod\x013,0
+    OUT
+  end
+
   def test_relative
     formatter = formatter_for(:format => 'custom', :tag_file_name => '.git/tags', :tag_relative => true)
     tag = build_tag(:path => 'path/to/script.rb')
@@ -78,10 +112,9 @@ class FormattersTest < Test::Unit::TestCase
     old_stdout, $stdout = $stdout, StringIO.new
     begin
       yield
+      $stdout.string
     ensure
-      out = $stdout.string
       $stdout = old_stdout
-      return out
     end
   end
 end
