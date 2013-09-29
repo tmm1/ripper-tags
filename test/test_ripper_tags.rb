@@ -325,4 +325,18 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal 1, tags.size
     assert_equal 'Foo', tags[0][:name]
   end
+
+  def test_extract_associations_with_class_name
+    tags = extract(<<-EOC)
+      class Foo
+        belongs_to Bar
+        has_one Bar
+        has_and_belongs_to_many Bar
+        has_many Bar
+      end
+    EOC
+
+    assert_equal 1, tags.size
+    assert_equal 'Foo', tags[0][:name]
+  end
 end
