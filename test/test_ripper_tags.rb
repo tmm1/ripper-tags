@@ -312,4 +312,17 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal 1, tags.size
     assert_equal 'NavigationTest', tags[0][:name]
   end
+
+  def test_extract_with_keyword_variables
+    tags = extract(<<-EOC)
+      class Foo
+        @public
+        @protected
+        @private
+      end
+    EOC
+
+    assert_equal 1, tags.size
+    assert_equal 'Foo', tags[0][:name]
+  end
 end

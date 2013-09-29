@@ -244,7 +244,8 @@ end
         sexp.each{ |child| process(child) }
       when Symbol
         name, *args = sexp
-        __send__("on_#{name}", *args)
+        handler = "on_#{name}"
+        __send__(handler, *args) if respond_to?(handler)
       when String, nil
         # nothing
       end
