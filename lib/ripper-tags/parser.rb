@@ -283,7 +283,7 @@ end
       on_module_or_class(:module, name, nil, body)
     end
 
-    def on_class(name, superclass, body)
+    def on_class(name, superclass, body = nil)
       on_module_or_class(:class, name, superclass, body)
     end
 

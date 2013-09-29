@@ -295,4 +295,21 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal '2: scope C.red',  inspect(tags[1])
     assert_equal '3: scope C.red',  inspect(tags[2])
   end
+
+  def test_extract_from_erb
+    tags = extract(<<-EOC)
+      class NavigationTest < ActionDispatch::IntegrationTest
+      <% unless options[:skip_active_record] -%>
+        fixtures :all
+      <% end -%>
+
+        # test "the truth" do
+        #   assert true
+        # end
+      end
+    EOC
+
+    assert_equal 1, tags.size
+    assert_equal 'NavigationTest', tags[0][:name]
+  end
 end
