@@ -147,19 +147,23 @@ class Parser < Ripper
         a = args[1][0].to_s
         kind = name.to_sym
         gen = []
-        gen << [:rails_def, kind, a, line]
-        gen << [:rails_def, kind, "#{a}=", line]
-        if (sing = a.chomp('s')) != a
-          # poor man's singularize
-          gen << [:rails_def, kind, "#{sing}_ids", line]
-          gen << [:rails_def, kind, "#{sing}_ids=", line]
+        unless a.is_a?(Enumerable)
+          gen << [:rails_def, kind, a, line]
+          gen << [:rails_def, kind, "#{a}=", line]
+          if a.respond_to?(:chomp) && (sing = a.chomp('s')) != a
+            # poor man's singularize
+            gen << [:rails_def, kind, "#{sing}_ids", line]
+            gen << [:rails_def, kind, "#{sing}_ids=", line]
+          end
         end
         gen
       when "belongs_to", "has_one"
         a = args[1][0]
-        kind = name.to_sym
-        %W[ #{a} #{a}= build_#{a} create_#{a} create_#{a}! ].inject([]) do |gen, ident|
-          gen << [:rails_def, kind, ident, line]
+        unless a.is_a?(Enumerable)
+          kind = name.to_sym
+          %W[ #{a} #{a}= build_#{a} create_#{a} create_#{a}! ].inject([]) do |gen, ident|
+            gen << [:rails_def, kind, ident, line]
+          end
         end
       end
     else
@@ -244,7 +248,8 @@ end
         sexp.each{ |child| process(child) }
       when Symbol
         name, *args = sexp
-        __send__("on_#{name}", *args)
+        handler = "on_#{name}"
+        __send__(handler, *args) if respond_to?(handler)
       when String, nil
         # nothing
       end
@@ -283,7 +288,7 @@ end
       on_module_or_class(:module, name, nil, body)
     end
 
-    def on_class(name, superclass, body)
+    def on_class(name, superclass, body = nil)
       on_module_or_class(:class, name, superclass, body)
     end
 

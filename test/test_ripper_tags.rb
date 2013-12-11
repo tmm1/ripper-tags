@@ -295,4 +295,48 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal '2: scope C.red',  inspect(tags[1])
     assert_equal '3: scope C.red',  inspect(tags[2])
   end
+
+  def test_extract_from_erb
+    tags = extract(<<-EOC)
+      class NavigationTest < ActionDispatch::IntegrationTest
+      <% unless options[:skip_active_record] -%>
+        fixtures :all
+      <% end -%>
+
+        # test "the truth" do
+        #   assert true
+        # end
+      end
+    EOC
+
+    assert_equal 1, tags.size
+    assert_equal 'NavigationTest', tags[0][:name]
+  end
+
+  def test_extract_with_keyword_variables
+    tags = extract(<<-EOC)
+      class Foo
+        @public
+        @protected
+        @private
+      end
+    EOC
+
+    assert_equal 1, tags.size
+    assert_equal 'Foo', tags[0][:name]
+  end
+
+  def test_extract_associations_with_class_name
+    tags = extract(<<-EOC)
+      class Foo
+        belongs_to Bar
+        has_one Bar
+        has_and_belongs_to_many Bar
+        has_many Bar
+      end
+    EOC
+
+    assert_equal 1, tags.size
+    assert_equal 'Foo', tags[0][:name]
+  end
 end
