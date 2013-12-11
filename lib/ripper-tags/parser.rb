@@ -144,7 +144,7 @@ class Parser < Ripper
           gen
         end
       when "has_many", "has_and_belongs_to_many"
-        a = args[1][0]
+        a = args[1][0].to_s
         kind = name.to_sym
         gen = []
         gen << [:rails_def, kind, a, line]
