@@ -255,7 +255,7 @@ end
       end
     end
 
-    def on_module_or_class(kind, name, superclass, body)
+    def on_module_or_class(kind, name, superclass, *body)
       name, line = *name
       @namespace << name
 
@@ -284,12 +284,12 @@ end
       @namespace.pop
     end
 
-    def on_module(name, body = nil)
-      on_module_or_class(:module, name, nil, body)
+    def on_module(name, *body)
+      on_module_or_class(:module, name, nil, *body)
     end
 
-    def on_class(name, superclass, body = nil)
-      on_module_or_class(:class, name, superclass, body)
+    def on_class(name, superclass, *body)
+      on_module_or_class(:class, name, superclass, *body)
     end
 
     def on_private()   @current_access = 'private'   end
