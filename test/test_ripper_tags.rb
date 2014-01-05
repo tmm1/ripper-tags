@@ -339,4 +339,32 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal 1, tags.size
     assert_equal 'Foo', tags[0][:name]
   end
+
+  def test_extract_class_with_ensure
+    tags = extract(<<-EOC)
+      class Foo
+        i = 1
+      ensure
+        i = 2
+      end
+    EOC
+
+    assert_equal 1, tags.size
+    assert_equal 'Foo', tags[0][:name]
+  end
+
+  def test_extract_class_with_mutiple_rescue_clauses
+    tags = extract(<<-EOC)
+      class Foo
+        i = 1
+      rescue ArgumentError
+        i = 2
+      rescue TypeError
+        i = 3
+      end
+    EOC
+
+    assert_equal 1, tags.size
+    assert_equal 'Foo', tags[0][:name]
+  end
 end
