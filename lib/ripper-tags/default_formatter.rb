@@ -23,13 +23,13 @@ module RipperTags
     end
 
     def tag_file_dir
-      @tag_file_dir ||= Pathname.new(options.tag_file_name).dirname
+      @tag_file_dir ||= Pathname.new(options.tag_file_name).realdirpath.dirname
     end
 
     def relative_path(tag)
       path = tag.fetch(:path)
       if options.tag_relative && !stdout? && path.index('/') != 0
-        Pathname.new(path).relative_path_from(tag_file_dir).to_s
+        Pathname.new(path).realpath.relative_path_from(tag_file_dir).to_s
       else
         path
       end
