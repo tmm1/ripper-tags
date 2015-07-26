@@ -306,10 +306,17 @@ end
         return on_module_or_class(kind, [name, line], superclass, rhs[4])
       end
 
+      namespace = @namespace
+      if name.include?('::')
+        parts = name.split('::')
+        name = parts.pop
+        namespace = namespace + parts
+      end
+
       emit_tag :constant, line,
         :name => name,
-        :full_name => (@namespace + [name]).join('::'),
-        :class => @namespace.join('::')
+        :full_name => (namespace + [name]).join('::'),
+        :class => namespace.join('::')
     end
 
     def on_alias(name, other, line)
