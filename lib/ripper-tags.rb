@@ -36,8 +36,8 @@ module RipperTags
              '"-" outputs to standard output') do |fname|
         options.tag_file_name = fname
       end
-      opts.on("--tag-relative", "Make file paths relative to the directory of the tag file") do
-        options.tag_relative = true
+      opts.on("--tag-relative[=OPTIONAL]", "Make file paths relative to the directory of the tag file") do |value|
+        options.tag_relative = value != "no"
       end
       opts.on("-R", "--recursive", "Descend recursively into subdirectories") do
         options.recursive = true
