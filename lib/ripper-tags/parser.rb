@@ -144,13 +144,14 @@ class Parser < Ripper
           gen
         end
       when "has_many", "has_and_belongs_to_many"
-        a = args[1][0].to_s
+        a = args[1][0]
         kind = name.to_sym
         gen = []
         unless a.is_a?(Enumerable)
+          a = a.to_s
           gen << [:rails_def, kind, a, line]
           gen << [:rails_def, kind, "#{a}=", line]
-          if a.respond_to?(:chomp) && (sing = a.chomp('s')) != a
+          if (sing = a.chomp('s')) != a
             # poor man's singularize
             gen << [:rails_def, kind, "#{sing}_ids", line]
             gen << [:rails_def, kind, "#{sing}_ids=", line]
