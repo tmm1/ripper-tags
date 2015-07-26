@@ -41,7 +41,7 @@ class DataReaderTest < Test::Unit::TestCase
       very/deep/script.rb
       very/inter.rb
     ]
-    assert_equal Set.new(expected), Set.new(files)
+    assert_equal expected, files
   end
 
   def test_file_finder_no_exclude
@@ -61,7 +61,7 @@ class DataReaderTest < Test::Unit::TestCase
       encoding.rb
       very/inter.rb
     ]
-    assert_equal Set.new(expected), Set.new(files)
+    assert_equal expected, files
   end
 
   def with_default_encoding(name)
