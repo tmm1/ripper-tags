@@ -249,8 +249,7 @@ end
         sexp.each{ |child| process(child) }
       when Symbol
         name, *args = sexp
-        handler = "on_#{name}"
-        __send__(handler, *args) if respond_to?(handler)
+        __send__("on_#{name}", *args) unless name.to_s.index("@") == 0
       when String, nil
         # nothing
       end
