@@ -76,6 +76,25 @@ class TagRipperTest < Test::Unit::TestCase
     ], tags.map{ |t| t[:full_name] }
   end
 
+  def test_extract_namespaced_constant
+    tags = extract(<<-EOC)
+      A::B::C = 1
+      module A::B
+        D::E = 2
+      end
+    EOC
+
+    assert_equal 3, tags.size
+
+    assert_equal 'C', tags[0][:name]
+    assert_equal 'A::B::C', tags[0][:full_name]
+    assert_equal 'A::B', tags[0][:class]
+
+    assert_equal 'E', tags[2][:name]
+    assert_equal 'A::B::D::E', tags[2][:full_name]
+    assert_equal 'A::B::D', tags[2][:class]
+  end
+
   def test_extract_access
     tags = extract(<<-EOC)
       class Test
