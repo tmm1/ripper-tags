@@ -8,7 +8,7 @@ require 'ripper-tags/vim_formatter'
 require 'ripper-tags/json_formatter'
 
 module RipperTags
-  def self.version() "0.1.2" end
+  def self.version() "0.1.3" end
 
   def self.default_options
     OpenStruct.new \
