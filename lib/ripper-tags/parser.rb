@@ -149,7 +149,7 @@ class Parser < Ripper
         a = args[1][0]
         kind = name.to_sym
         gen = []
-        unless a.is_a?(Enumerable)
+        unless a.is_a?(Enumerable) && !a.is_a?(String)
           a = a.to_s
           gen << [:rails_def, kind, a, line]
           gen << [:rails_def, kind, "#{a}=", line]
@@ -162,7 +162,7 @@ class Parser < Ripper
         gen
       when "belongs_to", "has_one"
         a = args[1][0]
-        unless a.is_a?(Enumerable)
+        unless a.is_a?(Enumerable) && !a.is_a?(String)
           kind = name.to_sym
           %W[ #{a} #{a}= build_#{a} create_#{a} create_#{a}! ].inject([]) do |all, ident|
             all << [:rails_def, kind, ident, line]

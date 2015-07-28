@@ -277,6 +277,7 @@ class TagRipperTest < Test::Unit::TestCase
         has_and_belongs_to_many :tags, :join_table => 'c_tags'
       end
     EOC
+    assert_equal 19, tags.length
     assert_equal 'Rails', tags[1][:language]
 
     assert_equal '2: belongs_to C.org', inspect(tags[1])
