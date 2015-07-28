@@ -1,6 +1,12 @@
+version_from_source = -> (file) do
+  File.open(File.expand_path("../#{file}", __FILE__)) do |source|
+    source.each { |line| return $1 if line =~ /\bversion\b.+"(.+?)"/i }
+  end
+end
+
 Gem::Specification.new do |s|
   s.name = 'ripper-tags'
-  s.version = '0.1.3'
+  s.version = version_from_source.('lib/ripper-tags.rb')
 
   s.summary = 'ctags generator for ruby code'
   s.description = 'fast, accurate ctags generator for ruby source code using Ripper'
@@ -19,5 +25,5 @@ Gem::Specification.new do |s|
 
   s.license = 'MIT'
 
-  s.files = `git ls-files`.split("\n")
+  s.files = `git ls-files -z -- README* LICENSE* bin lib`.split("\0")
 end

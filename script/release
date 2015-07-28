@@ -1,0 +1,13 @@
+#!/bin/bash
+set -eu
+
+fields=( $(gem build *.gemspec | grep '\(Version\|File\):' | awk '{print $2}') )
+version="${fields[0]}"
+gem="${fields[1]}"
+[ -n "$version" ] || exit 1
+trap "rm -f '$gem'" EXIT
+
+git commit --allow-empty -a -m "ripper-tags $version"
+git tag "v${version}"
+git push origin HEAD "v${version}"
+gem push "$gem"

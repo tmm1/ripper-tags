@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+export RUBYOPT="$RUBYOPT -w"
+
+if [ "$#" -gt 0 ]; then
+  bundle exec ruby -Ilib:test "$@"
+else
+  bundle exec rake test
+fi
