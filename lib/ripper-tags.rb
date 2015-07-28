@@ -76,6 +76,22 @@ module RipperTags
       opts.on_tail("--force", "Skip files with parsing errors") do
         options.force = true
       end
+      opts.on_tail("--list-kinds=LANG", "Print tag kinds that this parser supports and exit") do |lang|
+        if lang.downcase == "ruby"
+          puts((<<-OUT).gsub(/^ +/, ''))
+            c  classes
+            f  methods
+            m  modules
+            F  singleton methods
+            C  constants
+            a  aliases
+          OUT
+          exit
+        else
+          $stderr.puts "Error: language %p is not supported" % lang
+          exit 1
+        end
+      end
       opts.on_tail("-v", "--version", "Print version information") do
         puts opts.ver
         exit
