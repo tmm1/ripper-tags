@@ -151,6 +151,26 @@ def imethod\x7Fimethod\x013,0
     assert_equal 'path/to/script.rb', formatter.relative_path(tag)
   end
 
+  def test_json_format
+    json = formatter_for(:format => 'json', :tag_file_name => '-')
+    tags = []
+    tags << build_tag(:name => 'A')
+    tags << build_tag(:name => 'B')
+
+    expected = [
+      {"kind"=>"class", "line"=>1, "path"=>"./script.rb", "access"=>"public", "name"=>"A"},
+      {"kind"=>"class", "line"=>1, "path"=>"./script.rb", "access"=>"public", "name"=>"B"}
+    ]
+
+    output = capture_stdout do
+      json.with_output do |out|
+        tags.each { |tag| json.write(tag, out) }
+      end
+    end
+
+    assert_equal expected, JSON.load(output)
+  end
+
   def capture_stdout
     old_stdout, $stdout = $stdout, StringIO.new
     begin
