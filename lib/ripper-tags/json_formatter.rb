@@ -7,11 +7,23 @@ require 'ripper-tags/default_formatter'
 
 module RipperTags
   class JSONFormatter < DefaultFormatter
+    def supported_flags() ['s'] end
+
+    def stream_format?
+      return @stream_format if defined? @stream_format
+      @stream_format = extra_flag?('s')
+    end
+
     def with_output
       super do |true_out|
         buffer = []
         yield buffer
-        true_out << ::JSON.dump(buffer)
+
+        if stream_format?
+          buffer.each { |tag| true_out.puts ::JSON.dump(tag) }
+        else
+          true_out.write ::JSON.dump(buffer)
+        end
       end
     end
 
