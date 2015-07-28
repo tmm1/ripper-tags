@@ -1,6 +1,7 @@
 require 'test/unit'
 require 'stringio'
 require 'ostruct'
+require 'set'
 require 'ripper-tags'
 
 class FormattersTest < Test::Unit::TestCase
@@ -60,6 +61,27 @@ class FormattersTest < Test::Unit::TestCase
       :pattern => "  def self.smethod(*args)",
       :class => 'A::B'
     ))
+  end
+
+  def test_vim_with_fully_qualified
+    vim = formatter_for(:format => 'vim', :extra_flags => %w[q].to_set, :tag_file_name => '-')
+
+    output = capture_stdout do
+      vim.with_output do |out|
+        vim.write build_tag(
+          :kind => 'class', :name => 'C', :full_name => 'A::B::C',
+          :pattern => "class C < D",
+          :class => 'A::B', :inherits => 'D'
+        ), out
+      end
+    end
+
+    assert_equal <<-TAGS, output
+!_TAG_FILE_FORMAT\t2\t/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED\t1\t/0=unsorted, 1=sorted, 2=foldcase/
+A::B::C\t./script.rb\t/^class C < D$/;"\tc\tinherits:D
+C\t./script.rb\t/^class C < D$/;"\tc\tclass:A.B\tinherits:D
+TAGS
   end
 
   def test_emacs

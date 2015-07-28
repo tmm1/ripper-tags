@@ -1,5 +1,6 @@
 require 'optparse'
 require 'ostruct'
+require 'set'
 require 'ripper-tags/parser'
 require 'ripper-tags/data_reader'
 require 'ripper-tags/default_formatter'
@@ -13,6 +14,7 @@ module RipperTags
   def self.default_options
     OpenStruct.new \
       :format => nil,
+      :extra_flags => Set.new,
       :tag_file_name => "./tags",
       :tag_relative => nil,
       :debug => false,
@@ -60,6 +62,16 @@ module RipperTags
       end
       opts.on("-e", "--emacs", "Output Emacs format (default if `--tag-file' is `TAGS')") do
         options.format = "emacs"
+      end
+      opts.on("--extra=FLAGS", "Specify extra flags for the formatter") do |flags|
+        flags = flags.split("")
+        operation = :add
+        if flags[0] == "+" || flags[0] == "-"
+          operation = :delete if flags.shift == "-"
+        else
+          options.extra_flags.clear
+        end
+        flags.each { |f| options.extra_flags.send(operation, f) }
       end
 
       opts.separator ""
