@@ -386,4 +386,19 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal 1, tags.size
     assert_equal 'Foo', tags[0][:name]
   end
+
+  def test_extract_within_conditional
+    tags = extract(<<-EOC)
+      if 1
+        def foo() end
+      end
+      unless 2
+        def bar() end
+      end
+    EOC
+
+    assert_equal 2, tags.size
+    assert_equal 'foo', tags[0][:name]
+    assert_equal 'bar', tags[1][:name]
+  end
 end
