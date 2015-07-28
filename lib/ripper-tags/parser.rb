@@ -81,6 +81,7 @@ class Parser < Ripper
     ret = [success, failure].flatten(1).compact
     ret.any?? ret : nil
   end
+  alias on_unless on_if
 
   def on_unless_mod(condition, success)
     nil
