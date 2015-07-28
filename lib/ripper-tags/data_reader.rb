@@ -61,9 +61,11 @@ module RipperTags
 
   class DataReader
     attr_reader :options
+    attr_accessor :read_mode
 
     def initialize(options)
       @options = options
+      @read_mode = defined?(::Encoding) ? 'r:utf-8' : 'r'
     end
 
     def file_finder
@@ -71,7 +73,7 @@ module RipperTags
     end
 
     def read_file(filename)
-      str = File.open(filename, 'r:utf-8') {|f| f.read }
+      str = File.open(filename, read_mode) {|f| f.read }
       normalize_encoding(str)
     end
 
