@@ -1,6 +1,7 @@
 require 'test/unit'
 require 'stringio'
 require 'ostruct'
+require 'set'
 require 'ripper-tags'
 
 class FormattersTest < Test::Unit::TestCase
@@ -62,6 +63,27 @@ class FormattersTest < Test::Unit::TestCase
     ))
   end
 
+  def test_vim_with_fully_qualified
+    vim = formatter_for(:format => 'vim', :extra_flags => %w[q].to_set, :tag_file_name => '-')
+
+    output = capture_stdout do
+      vim.with_output do |out|
+        vim.write build_tag(
+          :kind => 'class', :name => 'C', :full_name => 'A::B::C',
+          :pattern => "class C < D",
+          :class => 'A::B', :inherits => 'D'
+        ), out
+      end
+    end
+
+    assert_equal <<-TAGS, output
+!_TAG_FILE_FORMAT\t2\t/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED\t1\t/0=unsorted, 1=sorted, 2=foldcase/
+A::B::C\t./script.rb\t/^class C < D$/;"\tc\tinherits:D
+C\t./script.rb\t/^class C < D$/;"\tc\tclass:A.B\tinherits:D
+TAGS
+  end
+
   def test_emacs
     emacs = formatter_for(:format => 'emacs')
     assert_equal %{  class C < D\x7FC\x015,0}, emacs.format(build_tag(
@@ -69,6 +91,27 @@ class FormattersTest < Test::Unit::TestCase
       :pattern => "  class C < D", :line => 5,
       :class => 'A::B', :inherits => 'D'
     ))
+  end
+
+  def test_emacs_with_fully_qualified
+    emacs = formatter_for(:format => 'emacs', :extra_flags => %w[q].to_set, :tag_file_name => '-')
+
+    output = capture_stdout do
+      emacs.with_output do |out|
+        emacs.write build_tag(
+          :kind => 'class', :name => 'C', :full_name => 'A::B::C',
+          :pattern => "class C < D",
+          :class => 'A::B', :inherits => 'D'
+        ), out
+      end
+    end
+
+    assert_equal <<-TAGS, output
+\x0C
+./script.rb,42
+class C < D\x7FC\x011,0
+class C < D\x7FA::B::C\x011,0
+TAGS
   end
 
   def test_emacs_file_section_headers

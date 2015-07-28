@@ -2,6 +2,13 @@ require 'ripper-tags/default_formatter'
 
 module RipperTags
   class VimFormatter < DefaultFormatter
+    def supported_flags() ['q'] end
+
+    def include_qualified_names?
+      return @include_qualified_names if defined? @include_qualified_names
+      @include_qualified_names = extra_flag?('q')
+    end
+
     def header
       <<-EOC
 !_TAG_FILE_FORMAT\t2\t/extended format; --format=1 will not append ;" to lines/
@@ -23,6 +30,9 @@ module RipperTags
 
     def write(tag, out)
       @queued_write << format(tag)
+      if include_qualified_names? && tag[:full_name] != tag[:name] && constant?(tag)
+        @queued_write << format(tag, :full_name)
+      end
     end
 
     def display_constant(const)
@@ -60,13 +70,13 @@ module RipperTags
       end
     end
 
-    def format(tag)
+    def format(tag, name_field = :name)
       "%s\t%s\t/^%s$/;\"\t%s%s%s" % [
-        tag.fetch(:name),
+        tag.fetch(name_field),
         relative_path(tag),
         display_pattern(tag),
         display_kind(tag),
-        display_class(tag),
+        name_field == :full_name ? nil : display_class(tag),
         display_inheritance(tag),
       ]
     end

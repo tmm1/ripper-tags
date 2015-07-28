@@ -1,5 +1,6 @@
 require 'test/unit'
 require 'stringio'
+require 'set'
 require 'ripper-tags'
 
 class CliTest < Test::Unit::TestCase
@@ -71,6 +72,21 @@ class CliTest < Test::Unit::TestCase
   def test_tag_relative_on_for_emacs
     options = process_args(%w[ -R -e ])
     assert_equal true, options.tag_relative
+  end
+
+  def test_no_extra_flags_by_default
+    options = process_args(%w[ -R ])
+    assert options.extra_flags.empty?
+  end
+
+  def test_extra_flags
+    options = process_args(%w[ -R --extra=ab ])
+    assert_equal %w[a b].to_set, options.extra_flags
+  end
+
+  def test_extra_flag_modifiers
+    options = process_args(%w[ -R --extra=xy --extra=abc --extra=-ac --extra=+de ])
+    assert_equal %w[b d e].to_set, options.extra_flags
   end
 
   def with_program_name(name)

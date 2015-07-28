@@ -1,4 +1,5 @@
 require 'pathname'
+require 'set'
 
 module RipperTags
   class DefaultFormatter
@@ -6,6 +7,22 @@ module RipperTags
 
     def initialize(options)
       @options = options
+
+      if @options.extra_flags
+        unsupported = @options.extra_flags - supported_flags.to_set
+        if unsupported.any?
+          raise FatalError, "these flags are not supported in the '%s' format: %s" % [
+            options.format,
+            unsupported.to_a.join(", ")
+          ]
+        end
+      end
+    end
+
+    def supported_flags() [] end
+
+    def extra_flag?(flag)
+      options.extra_flags && options.extra_flags.include?(flag)
     end
 
     def stdout?
@@ -33,6 +50,10 @@ module RipperTags
       else
         path
       end
+    end
+
+    def constant?(tag)
+      tag[:kind] == 'class' || tag[:kind] == 'module' || tag[:kind] == 'constant'
     end
 
     def display_kind(tag)

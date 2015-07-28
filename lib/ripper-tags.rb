@@ -1,5 +1,6 @@
 require 'optparse'
 require 'ostruct'
+require 'set'
 require 'ripper-tags/parser'
 require 'ripper-tags/data_reader'
 require 'ripper-tags/default_formatter'
@@ -10,9 +11,12 @@ require 'ripper-tags/json_formatter'
 module RipperTags
   def self.version() "0.1.3" end
 
+  FatalError = Class.new(RuntimeError)
+
   def self.default_options
     OpenStruct.new \
       :format => nil,
+      :extra_flags => Set.new,
       :tag_file_name => "./tags",
       :tag_relative => nil,
       :debug => false,
@@ -60,6 +64,16 @@ module RipperTags
       end
       opts.on("-e", "--emacs", "Output Emacs format (default if `--tag-file' is `TAGS')") do
         options.format = "emacs"
+      end
+      opts.on("--extra=FLAGS", "Specify extra flags for the formatter") do |flags|
+        flags = flags.split("")
+        operation = :add
+        if flags[0] == "+" || flags[0] == "-"
+          operation = :delete if flags.shift == "-"
+        else
+          options.extra_flags.clear
+        end
+        flags.each { |f| options.extra_flags.send(operation, f) }
       end
 
       opts.separator ""
@@ -120,7 +134,7 @@ module RipperTags
     when "emacs"  then RipperTags::EmacsFormatter
     when "json"   then RipperTags::JSONFormatter
     when "custom" then RipperTags::DefaultFormatter
-    else raise ArgumentError, "unknown format: #{options.format.inspect}"
+    else raise FatalError, "unknown format: #{options.format.inspect}"
     end.new(options)
   end
 
@@ -132,5 +146,11 @@ module RipperTags
         formatter.write(tag, out)
       end
     end
+  rescue FatalError => err
+    $stderr.puts "%s: %s" % [
+      File.basename($0),
+      err.message
+    ]
+    exit 1
   end
 end
