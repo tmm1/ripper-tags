@@ -67,14 +67,24 @@ class DataReaderTest < Test::Unit::TestCase
   def with_default_encoding(name)
     if defined?(Encoding)
       old_default = Encoding.default_external
-      Encoding.default_external = name
+      ignore_warnings { Encoding.default_external = name }
       begin
         yield
       ensure
-        Encoding.default_external = old_default
+        ignore_warnings { Encoding.default_external = old_default }
       end
     else
       yield
+    end
+  end
+
+  def ignore_warnings
+    old_verbose = $-w
+    $-w = false
+    begin
+      yield
+    ensure
+      $-w = old_verbose
     end
   end
 end

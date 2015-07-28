@@ -57,7 +57,6 @@ module RipperTags
     end
 
     def format(tag)
-      pattern = tag.fetch(:pattern)
       "%s\x7F%s\x01%d,%d" % [
         tag.fetch(:pattern),
         tag.fetch(:name),
