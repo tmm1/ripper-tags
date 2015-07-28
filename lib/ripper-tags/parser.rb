@@ -93,6 +93,7 @@ class Parser < Ripper
     end
   end
 
+  undef on_tstring_content
   def on_tstring_content(str)
     str
   end
@@ -162,8 +163,8 @@ class Parser < Ripper
         a = args[1][0]
         unless a.is_a?(Enumerable)
           kind = name.to_sym
-          %W[ #{a} #{a}= build_#{a} create_#{a} create_#{a}! ].inject([]) do |gen, ident|
-            gen << [:rails_def, kind, ident, line]
+          %W[ #{a} #{a}= build_#{a} create_#{a} create_#{a}! ].inject([]) do |all, ident|
+            all << [:rails_def, kind, ident, line]
           end
         end
       end
@@ -225,6 +226,8 @@ end
       @lines = data.split("\n")
       @namespace = []
       @tags = []
+      @is_singleton = false
+      @current_access = nil
 
       process(sexp)
     end
@@ -358,7 +361,7 @@ end
     end
 
     def on_sclass(name, body)
-      name, line = *name
+      name, _ = *name
       @namespace << name unless name == 'self'
       prev_is_singleton, @is_singleton = @is_singleton, true
       process(body)
@@ -368,7 +371,7 @@ end
     end
 
     def on_class_eval(name, body)
-      name, line = *name
+      name, _ = *name
       @namespace << name
       process(body)
     ensure
