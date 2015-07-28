@@ -17,6 +17,13 @@ module RipperTags
       @section_io = nil
     end
 
+    def supported_flags() ['q'] end
+
+    def include_qualified_names?
+      return @include_qualified_names if defined? @include_qualified_names
+      @include_qualified_names = extra_flag?('q')
+    end
+
     def with_output
       super do |io|
         begin
@@ -30,7 +37,10 @@ module RipperTags
     def write(tag, io)
       filename = relative_path(tag)
       section_io = start_file_section(filename, io)
-      super(tag, section_io)
+      section_io.puts format(tag)
+      if include_qualified_names? && tag[:full_name] != tag[:name] && constant?(tag)
+        section_io.puts format(tag, :full_name)
+      end
     end
 
     def start_file_section(filename, io)
@@ -56,10 +66,10 @@ module RipperTags
       "\x0C\n%s,%d\n" % [ filename, data_size ]
     end
 
-    def format(tag)
+    def format(tag, name_field = :name)
       "%s\x7F%s\x01%d,%d" % [
         tag.fetch(:pattern),
-        tag.fetch(:name),
+        tag.fetch(name_field),
         tag.fetch(:line),
         0,
       ]

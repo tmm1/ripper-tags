@@ -93,6 +93,27 @@ TAGS
     ))
   end
 
+  def test_emacs_with_fully_qualified
+    emacs = formatter_for(:format => 'emacs', :extra_flags => %w[q].to_set, :tag_file_name => '-')
+
+    output = capture_stdout do
+      emacs.with_output do |out|
+        emacs.write build_tag(
+          :kind => 'class', :name => 'C', :full_name => 'A::B::C',
+          :pattern => "class C < D",
+          :class => 'A::B', :inherits => 'D'
+        ), out
+      end
+    end
+
+    assert_equal <<-TAGS, output
+\x0C
+./script.rb,42
+class C < D\x7FC\x011,0
+class C < D\x7FA::B::C\x011,0
+TAGS
+  end
+
   def test_emacs_file_section_headers
     emacs = formatter_for(:format => 'emacs', :tag_file_name => '-')
 

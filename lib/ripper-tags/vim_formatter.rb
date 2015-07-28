@@ -59,10 +59,6 @@ module RipperTags
       end
     end
 
-    def constant?(tag)
-      tag[:kind] == "class" || tag[:kind] == "module" || tag[:kind] == "constant"
-    end
-
     def display_kind(tag)
       case tag.fetch(:kind)
       when 'method' then 'f'
