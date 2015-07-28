@@ -71,7 +71,7 @@ module RipperTags
     end
 
     def read_file(filename)
-      str = File.open(filename, 'r:utf-8') {|f| f.read }
+      str = File.open(filename, 'r:bom|utf-8') {|f| f.read }
       normalize_encoding(str)
     end
 
