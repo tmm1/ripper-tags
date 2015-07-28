@@ -11,6 +11,8 @@ require 'ripper-tags/json_formatter'
 module RipperTags
   def self.version() "0.1.3" end
 
+  FatalError = Class.new(RuntimeError)
+
   def self.default_options
     OpenStruct.new \
       :format => nil,
@@ -132,7 +134,7 @@ module RipperTags
     when "emacs"  then RipperTags::EmacsFormatter
     when "json"   then RipperTags::JSONFormatter
     when "custom" then RipperTags::DefaultFormatter
-    else raise ArgumentError, "unknown format: #{options.format.inspect}"
+    else raise FatalError, "unknown format: #{options.format.inspect}"
     end.new(options)
   end
 
@@ -144,5 +146,11 @@ module RipperTags
         formatter.write(tag, out)
       end
     end
+  rescue FatalError => err
+    $stderr.puts "%s: %s" % [
+      File.basename($0),
+      err.message
+    ]
+    exit 1
   end
 end

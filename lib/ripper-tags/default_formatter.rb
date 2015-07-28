@@ -11,7 +11,10 @@ module RipperTags
       if @options.extra_flags
         unsupported = @options.extra_flags - supported_flags.to_set
         if unsupported.any?
-          raise ArgumentError, "these flags are not supported: %s" % unsupported.to_a.join(", ")
+          raise FatalError, "these flags are not supported in the '%s' format: %s" % [
+            options.format,
+            unsupported.to_a.join(", ")
+          ]
         end
       end
     end
