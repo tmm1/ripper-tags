@@ -1,12 +1,13 @@
-def version_from_source(file)
+version_from_source = lambda do |file|
   File.open(File.expand_path("../#{file}", __FILE__)) do |source|
-    source.each { |line| return $1 if line =~ /\bversion\b.+"(.+?)"/i }
+    source.detect { |line| line =~ /\bversion\b.+"(.+?)"/i }
   end
+  $1
 end
 
 Gem::Specification.new do |s|
   s.name = 'ripper-tags'
-  s.version = version_from_source('lib/ripper-tags.rb')
+  s.version = version_from_source.call('lib/ripper-tags.rb')
 
   s.summary = 'ctags generator for ruby code'
   s.description = 'fast, accurate ctags generator for ruby source code using Ripper'
