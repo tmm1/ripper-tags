@@ -151,6 +151,49 @@ def imethod\x7Fimethod\x013,0
     assert_equal 'path/to/script.rb', formatter.relative_path(tag)
   end
 
+  def test_json_format
+    json = formatter_for(:format => 'json', :tag_file_name => '-')
+    tags = []
+    tags << build_tag(:name => 'A')
+    tags << build_tag(:name => 'B')
+
+    expected = [
+      {"kind"=>"class", "line"=>1, "path"=>"./script.rb", "access"=>"public", "name"=>"A"},
+      {"kind"=>"class", "line"=>1, "path"=>"./script.rb", "access"=>"public", "name"=>"B"}
+    ]
+
+    output = capture_stdout do
+      json.with_output do |out|
+        tags.each { |tag| json.write(tag, out) }
+      end
+    end
+
+    assert_equal expected, JSON.load(output)
+  end
+
+  def test_json_stream_format
+    json = formatter_for(:format => 'json', :extra_flags => %w[s].to_set, :tag_file_name => '-')
+    tags = []
+    tags << build_tag(:name => 'A')
+    tags << build_tag(:name => 'B')
+
+    expected = [
+      {"kind"=>"class", "line"=>1, "path"=>"./script.rb", "access"=>"public", "name"=>"A"},
+      {"kind"=>"class", "line"=>1, "path"=>"./script.rb", "access"=>"public", "name"=>"B"}
+    ]
+
+    output = capture_stdout do
+      json.with_output do |out|
+        tags.each { |tag| json.write(tag, out) }
+      end
+    end
+
+    lines = output.split("\n")
+    assert_equal 2, lines.length
+    assert_equal expected[0], JSON.load(lines[0])
+    assert_equal expected[1], JSON.load(lines[1])
+  end
+
   def capture_stdout
     old_stdout, $stdout = $stdout, StringIO.new
     begin

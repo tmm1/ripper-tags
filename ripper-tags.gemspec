@@ -17,8 +17,6 @@ Gem::Specification.new do |s|
   s.authors = ['Aman Gupta']
   s.email = ['aman@tmm1.net']
 
-  s.add_dependency 'yajl-ruby'
-
   s.require_paths = ['lib']
   s.bindir = 'bin'
   s.executables << 'ripper-tags'
