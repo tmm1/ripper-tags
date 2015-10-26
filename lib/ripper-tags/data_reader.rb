@@ -38,12 +38,12 @@ module RipperTags
       (options.all_files || file =~ /\.rb\z/) && !exclude_file?(file)
     end
 
-    def resolve_file(file)
+    def resolve_file(file, &block)
       if File.directory?(file)
         if options.recursive
           Dir.entries(file).each do |name|
             unless '.' == name || '..' == name
-              resolve_file(File.join(file, name)) { |f| yield f }
+              resolve_file(File.join(file, name), &block)
             end
           end
         end
@@ -52,10 +52,10 @@ module RipperTags
       end
     end
 
-    def each_file
+    def each_file(&block)
       return to_enum(__method__) unless block_given?
       options.files.each do |file|
-        resolve_file(file) { |f| yield f }
+        resolve_file(file, &block)
       end
     end
   end
