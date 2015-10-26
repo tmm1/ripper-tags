@@ -1,4 +1,5 @@
 require 'pp'
+require 'pathname'
 require 'ripper-tags/parser'
 
 module RipperTags
@@ -38,18 +39,25 @@ module RipperTags
       (options.all_files || file =~ /\.rb\z/) && !exclude_file?(file)
     end
 
-    def resolve_file(file, &block)
+    def resolve_file(file, depth = 0, &block)
       if File.directory?(file)
         if options.recursive
           Dir.entries(file).each do |name|
             unless '.' == name || '..' == name
-              resolve_file(File.join(file, name), &block)
+              subfile = File.join(file, name)
+              subfile = clean_path(subfile) if depth == 0
+              resolve_file(subfile, depth + 1, &block)
             end
           end
         end
       else
+        file = clean_path(file) if depth == 0
         yield file if include_file?(file)
       end
+    end
+
+    def clean_path(file)
+      Pathname.new(file).cleanpath.to_s
     end
 
     def each_file(&block)
