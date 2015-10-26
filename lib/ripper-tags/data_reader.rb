@@ -6,6 +6,10 @@ module RipperTags
   class FileFinder
     attr_reader :options
 
+    RE_RUBY = /\.rb\z/
+    DIR_CURRENT = '.'.freeze
+    DIR_PARENT = '..'.freeze
+
     def initialize(options)
       @options = options
     end
@@ -36,14 +40,14 @@ module RipperTags
     end
 
     def include_file?(file)
-      (options.all_files || file =~ /\.rb\z/) && !exclude_file?(file)
+      (options.all_files || file =~ RE_RUBY) && !exclude_file?(file)
     end
 
     def resolve_file(file, depth = 0, &block)
       if File.directory?(file)
         if options.recursive
           Dir.entries(file).each do |name|
-            unless '.' == name || '..' == name
+            if name != DIR_CURRENT && name != DIR_PARENT
               subfile = File.join(file, name)
               subfile = clean_path(subfile) if depth == 0
               resolve_file(subfile, depth + 1, &block)
