@@ -1,9 +1,14 @@
 require 'pp'
+require 'pathname'
 require 'ripper-tags/parser'
 
 module RipperTags
   class FileFinder
     attr_reader :options
+
+    RE_RUBY = /\.rb\z/
+    DIR_CURRENT = '.'.freeze
+    DIR_PARENT = '..'.freeze
 
     def initialize(options)
       @options = options
@@ -35,27 +40,35 @@ module RipperTags
     end
 
     def include_file?(file)
-      (options.all_files || file =~ /\.rb\z/) && !exclude_file?(file)
+      (options.all_files || file =~ RE_RUBY) && !exclude_file?(file)
     end
 
-    def find_files(list, depth = 0)
-      list.each do |file|
-        if File.directory?(file)
-          if options.recursive
-            files = Dir.entries(file).map { |name|
-              File.join(file, name) unless '.' == name || '..' == name
-            }.compact
-            find_files(files, depth + 1) {|f| yield f }
+    def resolve_file(file, depth = 0, &block)
+      if File.directory?(file)
+        if options.recursive
+          Dir.entries(file).each do |name|
+            if name != DIR_CURRENT && name != DIR_PARENT
+              subfile = File.join(file, name)
+              subfile = clean_path(subfile) if depth == 0
+              resolve_file(subfile, depth + 1, &block)
+            end
           end
-        else
-          yield file if include_file?(file)
         end
+      else
+        file = clean_path(file) if depth == 0
+        yield file if include_file?(file)
       end
     end
 
-    def each_file
+    def clean_path(file)
+      Pathname.new(file).cleanpath.to_s
+    end
+
+    def each_file(&block)
       return to_enum(__method__) unless block_given?
-      find_files(options.files) {|f| yield f }
+      options.files.each do |file|
+        resolve_file(file, &block)
+      end
     end
   end
 

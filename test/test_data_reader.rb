@@ -13,7 +13,7 @@ class DataReaderTest < Test::Unit::TestCase
     opts = files.last.is_a?(Hash) ? files.pop : {}
     options = OpenStruct.new({:files => files, :recursive => true}.merge(opts))
     finder = RipperTags::FileFinder.new(options)
-    finder.each_file.map {|f| f.sub("#{FIXTURES}/", '') }
+    finder.each_file.to_a
   end
 
   def test_encoding
@@ -35,7 +35,7 @@ class DataReaderTest < Test::Unit::TestCase
   end
 
   def test_file_finder
-    files = find_files(fixture(''), :exclude => %w[_git])
+    files = in_fixtures { find_files('.', :exclude => %w[_git]) }
     expected = %w[
       encoding.rb
       very/deep/script.rb
@@ -45,23 +45,36 @@ class DataReaderTest < Test::Unit::TestCase
   end
 
   def test_file_finder_no_exclude
-    files = find_files(fixture(''), :exclude => [])
+    files = in_fixtures { find_files('.', :exclude => []) }
     assert files.include?('_git/hooks/hook.rb'), files.inspect
   end
 
   def test_file_finder_exclude
-    files = find_files(fixture(''), :exclude => %w[_git very])
+    files = in_fixtures { find_files('.', :exclude => %w[_git very]) }
     expected = %w[ encoding.rb ]
     assert_equal expected, files
   end
 
   def test_file_finder_exclude_glob
-    files = find_files(fixture(''), :exclude => %w[_git very/deep/*])
+    files = in_fixtures { find_files('.', :exclude => %w[_git very/deep/*]) }
     expected = %w[
       encoding.rb
       very/inter.rb
     ]
     assert_equal expected, files
+  end
+
+  def test_file_finder_cleanpath
+    files = in_fixtures { find_files('./very/../encoding.rb', 'very//inter.rb') }
+    expected = %w[
+      encoding.rb
+      very/inter.rb
+    ]
+    assert_equal expected, files
+  end
+
+  def in_fixtures
+    Dir.chdir(FIXTURES) { yield }
   end
 
   def with_default_encoding(name)
