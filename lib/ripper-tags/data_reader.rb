@@ -38,24 +38,25 @@ module RipperTags
       (options.all_files || file =~ /\.rb\z/) && !exclude_file?(file)
     end
 
-    def find_files(list, depth = 0)
-      list.each do |file|
-        if File.directory?(file)
-          if options.recursive
-            files = Dir.entries(file).map { |name|
-              File.join(file, name) unless '.' == name || '..' == name
-            }.compact
-            find_files(files, depth + 1) {|f| yield f }
+    def resolve_file(file)
+      if File.directory?(file)
+        if options.recursive
+          Dir.entries(file).each do |name|
+            unless '.' == name || '..' == name
+              resolve_file(File.join(file, name)) { |f| yield f }
+            end
           end
-        else
-          yield file if include_file?(file)
         end
+      else
+        yield file if include_file?(file)
       end
     end
 
     def each_file
       return to_enum(__method__) unless block_given?
-      find_files(options.files) {|f| yield f }
+      options.files.each do |file|
+        resolve_file(file) { |f| yield f }
+      end
     end
   end
 
