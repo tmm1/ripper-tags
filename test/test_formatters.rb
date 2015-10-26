@@ -145,6 +145,20 @@ def imethod\x7Fimethod\x013,0
     assert_equal '../path/to/script.rb', formatter.relative_path(tag)
   end
 
+  def test_relative_with_absolute_tags_file_path
+    tag_file_name = File.join(Dir.pwd,'.git/tags')
+    formatter = formatter_for(:format => 'custom', :tag_file_name => tag_file_name, :tag_relative => true)
+    tag = build_tag(:path => 'path/to/script.rb')
+    assert_equal '../path/to/script.rb', formatter.relative_path(tag)
+  end
+
+  def test_relative_with_common_prefix
+    tag_file_name = File.join(Dir.pwd,'path/tags')
+    formatter = formatter_for(:format => 'custom', :tag_file_name => tag_file_name, :tag_relative => true)
+    tag = build_tag(:path => 'path/to/script.rb')
+    assert_equal 'to/script.rb', formatter.relative_path(tag)
+  end
+
   def test_no_relative
     formatter = formatter_for(:format => 'custom', :tag_file_name => '.git/tags')
     tag = build_tag(:path => 'path/to/script.rb')
