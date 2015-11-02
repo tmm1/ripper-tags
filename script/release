@@ -7,7 +7,10 @@ gem="${fields[1]}"
 [ -n "$version" ] || exit 1
 trap "rm -f '$gem'" EXIT
 
-git commit --allow-empty -a -m "ripper-tags $version"
-git tag "v${version}"
+if ! git rev-parse --verify --quiet "refs/tags/v${version}" >/dev/null; then
+  git commit --allow-empty -a -m "ripper-tags $version"
+  git tag "v${version}"
+fi
+
 git push origin HEAD "v${version}"
 gem push "$gem"
