@@ -55,7 +55,7 @@ module RipperTags
 
     def resolve_file(file, depth = 0, &block)
       if File.directory?(file)
-        if options.recursive
+        if options.recursive && !exclude_file?(file)
           Dir.entries(file).each do |name|
             if name != DIR_CURRENT && name != DIR_PARENT
               subfile = File.join(file, name)
