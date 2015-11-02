@@ -6,7 +6,7 @@ module RipperTags
   class FileFinder
     attr_reader :options
 
-    RE_RUBY = /\.rb\z/
+    RUBY_EXT = '.rb'.freeze
     DIR_CURRENT = '.'.freeze
     DIR_PARENT = '..'.freeze
 
@@ -39,8 +39,12 @@ module RipperTags
       }
     end
 
+    def ruby_file?(file)
+      file.end_with?(RUBY_EXT)
+    end
+
     def include_file?(file)
-      (options.all_files || file =~ RE_RUBY) && !exclude_file?(file)
+      (options.all_files || ruby_file?(file)) && !exclude_file?(file)
     end
 
     def resolve_file(file, depth = 0, &block)
