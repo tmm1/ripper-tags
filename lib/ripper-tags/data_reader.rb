@@ -6,7 +6,7 @@ module RipperTags
   class FileFinder
     attr_reader :options
 
-    RE_RUBY = /\.rb\z/
+    RUBY_EXT = '.rb'.freeze
     DIR_CURRENT = '.'.freeze
     DIR_PARENT = '..'.freeze
 
@@ -26,26 +26,36 @@ module RipperTags
 
     def exclude_file?(file)
       base = File.basename(file)
-      exclude_patterns.any? {|ex|
+      match = exclude_patterns.find { |ex|
         case ex
         when Regexp then base =~ ex
         else base == ex
         end
-      } || exclude_patterns.any? {|ex|
+      } || exclude_patterns.find { |ex|
         case ex
         when Regexp then file =~ ex
         else file.include?(ex)
         end
       }
+
+      if match && options.verbose
+        $stderr.puts "Ignoring %s because of exclude rule: %p" % [file, match]
+      end
+
+      match
+    end
+
+    def ruby_file?(file)
+      file.end_with?(RUBY_EXT)
     end
 
     def include_file?(file)
-      (options.all_files || file =~ RE_RUBY) && !exclude_file?(file)
+      (options.all_files || ruby_file?(file)) && !exclude_file?(file)
     end
 
     def resolve_file(file, depth = 0, &block)
       if File.directory?(file)
-        if options.recursive
+        if options.recursive && !exclude_file?(file)
           Dir.entries(file).each do |name|
             if name != DIR_CURRENT && name != DIR_PARENT
               subfile = File.join(file, name)
@@ -54,9 +64,14 @@ module RipperTags
             end
           end
         end
-      else
+      elsif depth > 0 || File.exist?(file)
         file = clean_path(file) if depth == 0
         yield file if include_file?(file)
+      elsif
+        $stderr.puts "%s: %p: no such file or directory" % [
+          File.basename($0),
+          file
+        ]
       end
     end
 
