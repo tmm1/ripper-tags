@@ -2,6 +2,8 @@ require 'pathname'
 require 'set'
 
 module RipperTags
+  BrokenPipe = Class.new(RuntimeError)
+
   class DefaultFormatter
     attr_reader :options
 
@@ -31,7 +33,11 @@ module RipperTags
 
     def with_output
       if stdout?
-        yield $stdout
+        begin
+          yield $stdout
+	rescue Errno::EINVAL
+	  raise BrokenPipe
+	end
       else
         File.open(options.tag_file_name, 'w+') do |outfile|
           yield outfile
