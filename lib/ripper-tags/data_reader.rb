@@ -64,9 +64,14 @@ module RipperTags
             end
           end
         end
-      else
+      elsif depth > 0 || File.exist?(file)
         file = clean_path(file) if depth == 0
         yield file if include_file?(file)
+      elsif
+        $stderr.puts "%s: %p: no such file or directory" % [
+          File.basename($0),
+          file
+        ]
       end
     end
 
