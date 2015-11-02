@@ -26,17 +26,23 @@ module RipperTags
 
     def exclude_file?(file)
       base = File.basename(file)
-      exclude_patterns.any? {|ex|
+      match = exclude_patterns.find { |ex|
         case ex
         when Regexp then base =~ ex
         else base == ex
         end
-      } || exclude_patterns.any? {|ex|
+      } || exclude_patterns.find { |ex|
         case ex
         when Regexp then file =~ ex
         else file.include?(ex)
         end
       }
+
+      if match && options.verbose
+        $stderr.puts "Ignoring %s because of exclude rule: %p" % [file, match]
+      end
+
+      match
     end
 
     def ruby_file?(file)
