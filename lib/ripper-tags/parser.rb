@@ -300,8 +300,10 @@ end
     def on_protected() @current_access = 'protected' end
     def on_public()    @current_access = 'public'    end
 
-    def on_assign(name, rhs, line)
-      return unless name =~ /^[A-Z]/
+    # Ripper trips up on keyword arguments in pre-2.1 Ruby and supplies extra
+    # arguments that we just ignore here
+    def on_assign(name, rhs, line, *junk)
+      return unless name =~ /^[A-Z]/ && junk.empty?
 
       if rhs && :call == rhs[0] && rhs[1] && "#{rhs[1][0]}.#{rhs[2]}" =~ /^(Class|Module|Struct)\.new$/
         kind = $1 == 'Module' ? :module : :class

@@ -402,4 +402,25 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal 'foo', tags[0][:name]
     assert_equal 'bar', tags[1][:name]
   end
+
+  def test_keyword_arguments
+    tags = extract(<<-EOC)
+      class A
+        def foo(o:)
+          x = { :a => 1 }
+          y = { :b => 2 }
+        end
+      end
+    EOC
+
+    if RUBY_VERSION < '2.1'
+      # Ruby 1.9 and 2.0 trip up on keyword argument syntax
+      assert_equal 1, tags.size
+      assert_equal 'A', tags[0][:name]
+    else
+      assert_equal 2, tags.size
+      assert_equal 'A', tags[0][:name]
+      assert_equal 'foo', tags[1][:name]
+    end
+  end
 end
