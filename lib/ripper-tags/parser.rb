@@ -108,7 +108,7 @@ class Parser < Ripper
   end
 
   def on_vcall(name)
-    [name[0].to_sym] if name[0].to_s =~ /private|protected|public$/
+    [name[0].to_sym] if name[0].to_s =~ /^(private|protected|public)$/
   end
 
   def on_call(lhs, op, rhs)

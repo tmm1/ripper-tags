@@ -423,4 +423,15 @@ class TagRipperTest < Test::Unit::TestCase
       assert_equal 'foo', tags[1][:name]
     end
   end
+
+  def test_attr_protected
+    tags = extract(<<-EOC)
+      class A
+        attr_protected
+      end
+    EOC
+
+    assert_equal 1, tags.size
+    assert_equal 'A', tags[0][:name]
+  end
 end
