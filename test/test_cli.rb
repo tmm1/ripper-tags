@@ -48,6 +48,18 @@ class CliTest < Test::Unit::TestCase
     assert_equal 'emacs', options.format
   end
 
+  def test_emacs_format_trigger_TAGS
+    options = process_args(%w[-e])
+    assert_equal 'emacs', options.format
+    assert_equal './TAGS', options.tag_file_name
+  end
+
+  def test_emacs_format_use_user_provided_tag_file_name
+    options = process_args(%w[-e -f tags])
+    assert_equal 'emacs', options.format
+    assert_equal './tags', options.tag_file_name
+  end
+
   def test_tag_relative_off_by_default
     options = process_args(%w[ -R ])
     assert_equal false, options.tag_relative
