@@ -18,6 +18,7 @@ module RipperTags
       :format => nil,
       :extra_flags => Set.new,
       :tag_file_name => "./tags",
+      :provide_tag_file_name => false,
       :tag_relative => nil,
       :debug => false,
       :verbose_debug => false,
@@ -39,6 +40,7 @@ module RipperTags
       opts.on("-f", "--tag-file (FILE|-)", "File to write tags to (default: `#{options.tag_file_name}')",
              '"-" outputs to standard output') do |fname|
         options.tag_file_name = fname
+        options.provide_tag_file_name = true
       end
       opts.on("--tag-relative[=OPTIONAL]", "Make file paths relative to the directory of the tag file") do |value|
         options.tag_relative = value != "no"
@@ -122,7 +124,7 @@ module RipperTags
       elsif !options.recursive then abort(optparse.banner)
       end
       options.format ||= File.basename(options.tag_file_name) == "TAGS" ? "emacs" : "vim"
-      if options.format == 'emacs' and options.tag_file_name == default_options.tag_file_name
+      if options.format == 'emacs' and not options.provide_tag_file_name
         options.tag_file_name = 'TAGS'
       end
       options.tag_relative = options.format == "emacs" if options.tag_relative.nil?
