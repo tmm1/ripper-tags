@@ -121,12 +121,8 @@ module RipperTags
       if !file_list.empty? then options.files = file_list
       elsif !options.recursive then abort(optparse.banner)
       end
-      if options.tag_file_name.nil?
-        options.tag_file_name = options.format == 'emacs' ? 'TAGS' : 'tags'
-      end
-      if options.format.nil?
-        options.format = File.basename(options.tag_file_name) == 'TAGS' ? 'emacs' : 'vim'
-      end
+      options.tag_file_name ||= options.format == 'emacs' ? 'TAGS' : 'tags'
+      options.format ||= File.basename(options.tag_file_name) == 'TAGS' ? 'emacs' : 'vim'
       options.tag_relative = options.format == "emacs" if options.tag_relative.nil?
       return run.call(options)
     end
