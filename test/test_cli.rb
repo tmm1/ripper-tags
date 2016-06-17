@@ -38,9 +38,21 @@ class CliTest < Test::Unit::TestCase
     assert_equal [], options.exclude
   end
 
+  def test_default_tags_file
+    options = process_args(%w[script.rb])
+    assert_equal './tags', options.tag_file_name
+    assert_equal 'vim', options.format
+  end
+
+  def test_explicit_tags_file
+    options = process_args(%w[-f path/to/mytags script.rb])
+    assert_equal 'path/to/mytags', options.tag_file_name
+    assert_equal 'vim', options.format
+  end
+
   def test_TAGS_triggers_to_emacs_format
-    options = process_args(%w[-f ./TAGS script.rb])
-    assert_equal './TAGS', options.tag_file_name
+    options = process_args(%w[-f path/to/TAGS script.rb])
+    assert_equal 'path/to/TAGS', options.tag_file_name
     assert_equal 'emacs', options.format
   end
 
@@ -51,7 +63,7 @@ class CliTest < Test::Unit::TestCase
   end
 
   def test_emacs_format_use_user_provided_tag_file_name
-    options = process_args(%w[-e -f tags script.rb])
+    options = process_args(%w[-e -f ./tags script.rb])
     assert_equal 'emacs', options.format
     assert_equal './tags', options.tag_file_name
   end

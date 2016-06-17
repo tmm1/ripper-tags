@@ -123,7 +123,7 @@ module RipperTags
       elsif !options.recursive
         raise OptionParser::InvalidOption, "needs either a list of files or `-R' flag"
       end
-      options.tag_file_name ||= options.format == 'emacs' ? 'TAGS' : 'tags'
+      options.tag_file_name ||= options.format == 'emacs' ? './TAGS' : './tags'
       options.format ||= File.basename(options.tag_file_name) == 'TAGS' ? 'emacs' : 'vim'
       options.tag_relative = options.format == "emacs" if options.tag_relative.nil?
       return run.call(options)
