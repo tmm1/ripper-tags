@@ -36,7 +36,7 @@ module RipperTags
 
       opts.separator ""
 
-      opts.on("-f", "--tag-file (FILE|-)", "File to write tags to (default: `TAGS' if emacs, `tags' if others)",
+      opts.on("-f", "--tag-file (FILE|-)", "File to write tags to (default: `./tags')",
              '"-" outputs to standard output') do |fname|
         options.tag_file_name = fname
       end
