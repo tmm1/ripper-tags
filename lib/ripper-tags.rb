@@ -17,7 +17,7 @@ module RipperTags
     OpenStruct.new \
       :format => nil,
       :extra_flags => Set.new,
-      :tag_file_name => "./tags",
+      :tag_file_name => nil,
       :tag_relative => nil,
       :debug => false,
       :verbose_debug => false,
@@ -36,7 +36,7 @@ module RipperTags
 
       opts.separator ""
 
-      opts.on("-f", "--tag-file (FILE|-)", "File to write tags to (default: `#{options.tag_file_name}')",
+      opts.on("-f", "--tag-file (FILE|-)", "File to write tags to (default: `TAGS' if emacs, `tags' if others)",
              '"-" outputs to standard output') do |fname|
         options.tag_file_name = fname
       end
@@ -121,7 +121,8 @@ module RipperTags
       if !file_list.empty? then options.files = file_list
       elsif !options.recursive then abort(optparse.banner)
       end
-      options.format ||= File.basename(options.tag_file_name) == "TAGS" ? "emacs" : "vim"
+      options.tag_file_name ||= options.format == 'emacs' ? 'TAGS' : 'tags'
+      options.format ||= File.basename(options.tag_file_name) == 'TAGS' ? 'emacs' : 'vim'
       options.tag_relative = options.format == "emacs" if options.tag_relative.nil?
       return run.call(options)
     end
