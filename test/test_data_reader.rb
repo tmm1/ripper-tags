@@ -41,7 +41,7 @@ class DataReaderTest < Test::Unit::TestCase
       very/deep/script.rb
       very/inter.rb
     ]
-    assert_equal expected, files
+    assert_equal expected, files.sort
   end
 
   def test_file_finder_no_exclude
@@ -52,7 +52,7 @@ class DataReaderTest < Test::Unit::TestCase
   def test_file_finder_exclude
     files = in_fixtures { find_files('.', :exclude => %w[_git very]) }
     expected = %w[ encoding.rb ]
-    assert_equal expected, files
+    assert_equal expected, files.sort
   end
 
   def test_file_finder_exclude_glob
@@ -61,7 +61,7 @@ class DataReaderTest < Test::Unit::TestCase
       encoding.rb
       very/inter.rb
     ]
-    assert_equal expected, files
+    assert_equal expected, files.sort
   end
 
   def test_file_finder_cleanpath
@@ -70,7 +70,7 @@ class DataReaderTest < Test::Unit::TestCase
       encoding.rb
       very/inter.rb
     ]
-    assert_equal expected, files
+    assert_equal expected, files.sort
   end
 
   def in_fixtures
