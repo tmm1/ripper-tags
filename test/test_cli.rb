@@ -45,13 +45,13 @@ class CliTest < Test::Unit::TestCase
   end
 
   def test_emacs_format_trigger_TAGS
-    options = process_args(%w[-e])
+    options = process_args(%w[-e script.rb])
     assert_equal 'emacs', options.format
     assert_equal './TAGS', options.tag_file_name
   end
 
   def test_emacs_format_use_user_provided_tag_file_name
-    options = process_args(%w[-e -f tags])
+    options = process_args(%w[-e -f tags script.rb])
     assert_equal 'emacs', options.format
     assert_equal './tags', options.tag_file_name
   end
