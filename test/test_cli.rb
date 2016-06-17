@@ -9,14 +9,10 @@ class CliTest < Test::Unit::TestCase
   end
 
   def test_empty_args
-    err = assert_raise(SystemExit) do
-      with_program_name('ripper-tags') do
-        capture_stderr do
-          RipperTags.process_args([])
-        end
-      end
+    err = assert_raise(OptionParser::InvalidOption) do
+      RipperTags.process_args([])
     end
-    assert_equal "Usage: ripper-tags [options] FILES...", err.message
+    assert_equal "invalid option: needs either a list of files or `-R' flag", err.message
   end
 
   def test_invalid_option
@@ -99,16 +95,6 @@ class CliTest < Test::Unit::TestCase
   def test_extra_flag_modifiers
     options = process_args(%w[ -R --extra=xy --extra=abc --extra=-ac --extra=+de ])
     assert_equal %w[b d e].to_set, options.extra_flags
-  end
-
-  def with_program_name(name)
-    old_name = $0
-    $0 = name
-    begin
-      yield
-    ensure
-      $0 = old_name
-    end
   end
 
   def capture_stderr

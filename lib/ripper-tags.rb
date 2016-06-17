@@ -118,8 +118,10 @@ module RipperTags
   def self.process_args(argv, run = method(:run))
     option_parser(default_options) do |optparse, options|
       file_list = optparse.parse(argv)
-      if !file_list.empty? then options.files = file_list
-      elsif !options.recursive then abort(optparse.banner)
+      if !file_list.empty?
+        options.files = file_list
+      elsif !options.recursive
+        raise OptionParser::InvalidOption, "needs either a list of files or `-R' flag"
       end
       options.tag_file_name ||= options.format == 'emacs' ? 'TAGS' : 'tags'
       options.format ||= File.basename(options.tag_file_name) == 'TAGS' ? 'emacs' : 'vim'
