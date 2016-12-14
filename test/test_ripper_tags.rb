@@ -434,4 +434,20 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal 1, tags.size
     assert_equal 'A', tags[0][:name]
   end
+
+  def test_heredoc
+    tags = extract(<<-EOC)
+      def foo
+        puts "hello", <<~EOF
+          world
+        EOF
+      end
+
+      def bar; end
+    EOC
+
+    assert_equal 2, tags.size
+    assert_equal 'foo', tags[0][:name]
+    assert_equal 'bar', tags[1][:name]
+  end
 end

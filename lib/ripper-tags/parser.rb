@@ -17,6 +17,7 @@ class Parser < Ripper
   end
 
   def on_stmts_add(first, *rest)
+    return if first == :~
     (first || []) + rest.compact
   end
 
