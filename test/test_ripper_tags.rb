@@ -450,4 +450,17 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal 'foo', tags[0][:name]
     assert_equal 'bar', tags[1][:name]
   end
+
+  def test_bare_bang
+    tags = extract(<<-EOC)
+      if condition
+      elsif !other
+        # `!other` triggered crash in `elsif` clause
+      end
+      # also triggered when bare:
+      !condition
+    EOC
+
+    assert_equal 0, tags.size
+  end
 end
