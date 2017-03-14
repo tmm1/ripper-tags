@@ -122,11 +122,15 @@ module RipperTags
           $stderr.puts "Parsing file #{file}" if options.verbose
           extractor = tag_extractor(file)
         rescue => err
-          if options.force
-            $stderr.puts "Error parsing `#{file}': #{err.message}"
-          else
-            raise err
+          $stderr.puts "Error parsing #{File.expand_path(file)} - #{err.message}"
+          if options.detail_error
+            $stderr.puts "File dump:"
+            PP.pp(Ripper.sexp(file_contents), $stderr)
+            $stderr.puts "Faulty node:"
+            PP.pp(sexp, $stderr)
+            $stderr.puts err.backtrace.join("\n")
           end
+          raise err unless options.force
         else
           extractor.tags.each do |tag|
             yield tag
