@@ -54,7 +54,7 @@ module RipperTags
       if options.tag_relative && !stdout? && path.index('/') != 0
         Pathname.new(path).expand_path.relative_path_from(tag_file_dir).to_s
       else
-        path
+        Pathname.new(path).cleanpath.to_s
       end
     end
 
