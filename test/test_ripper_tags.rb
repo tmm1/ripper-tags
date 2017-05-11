@@ -76,6 +76,25 @@ class TagRipperTest < Test::Unit::TestCase
     ], tags.map{ |t| t[:full_name] }
   end
 
+  def test_nested_constant_definitions
+    tags = extract(<<-EOC)
+      A = [
+        B = 1,
+        C = 2
+      ]
+
+      D = {
+        E = 3 => F = 4,
+        x: G = 5
+      }
+    EOC
+
+    assert_equal ('A'..'G').to_a, tags.map { |t| t[:name] }.sort
+    tags.each do |t|
+      assert_equal t[:name], t[:full_name]
+    end
+  end
+
   def test_extract_namespaced_constant
     tags = extract(<<-EOC)
       A::B::C = 1

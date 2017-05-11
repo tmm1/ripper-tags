@@ -95,6 +95,10 @@ class Parser < Ripper
     end
   end
 
+  def on_assoc_new(*args)
+    args
+  end
+
   undef on_tstring_content
   def on_tstring_content(str)
     str
@@ -320,6 +324,8 @@ end
         namespace = namespace + parts
       end
 
+      process(rhs)
+
       emit_tag :constant, line,
         :name => name,
         :full_name => (namespace + [name]).join('::'),
@@ -382,12 +388,15 @@ end
       @namespace.pop
     end
 
+    def on_args(*args)
+      process(args)
+    end
+
     def on_call(*args)
     end
     alias on_aref_field on_call
     alias on_field on_call
     alias on_fcall on_call
-    alias on_args on_call
     alias on_! on_call
   end
 end
