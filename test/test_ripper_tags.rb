@@ -316,6 +316,55 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal '3: scope C.red',  inspect(tags[2])
   end
 
+  def test_extract_delegate
+    tags = extract(<<-EOC)
+      class C
+        delegate :foo,
+                 :bar, to: :thingy
+        delegate :x, to: :thingy, prefix: true
+        delegate :y, to: :thingy, prefix: :pos
+
+        delegate :z, :to => :thingy, :prefix => true
+        delegate :gamma, :to => :thingy, :prefix => :radiation
+
+        def thingy
+          Object.new
+        end
+      end
+    EOC
+
+    assert_equal 8, tags.count
+    assert_equal '2: method C#foo', inspect(tags[1])
+    assert_equal '3: method C#bar', inspect(tags[2])
+    assert_equal '4: method C#thingy_x', inspect(tags[3])
+    assert_equal '5: method C#pos_y', inspect(tags[4])
+    assert_equal '7: method C#thingy_z', inspect(tags[5])
+    assert_equal '8: method C#radiation_gamma', inspect(tags[6])
+  end
+
+  def test_def_delegator
+    tags = extract(<<-EOC)
+      class F
+        def_delegator :@things, :size, :count
+      end
+    EOC
+
+    assert_equal 2, tags.count
+    assert_equal '2: method F#count', inspect(tags[1])
+  end
+
+  def test_def_delegators
+    tags = extract(<<-EOC)
+      class F
+        def_delegators :@things, :foo, :bar
+      end
+    EOC
+
+    assert_equal 3, tags.count
+    assert_equal '2: method F#foo', inspect(tags[1])
+    assert_equal '2: method F#bar', inspect(tags[2])
+  end
+
   def test_extract_from_erb
     tags = extract(<<-EOC)
       class NavigationTest < ActionDispatch::IntegrationTest
