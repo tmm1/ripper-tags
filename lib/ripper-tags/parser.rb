@@ -18,7 +18,7 @@ class Parser < Ripper
 
   def on_stmts_add(first, *rest)
     return if first == :~
-    (first || []) + rest.compact
+    Array(first) + rest.compact
   end
 
   def on_module(name, body)

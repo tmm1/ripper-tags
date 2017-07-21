@@ -451,6 +451,18 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal 'bar', tags[1][:name]
   end
 
+  def test_heredoc_backticks
+    tags = extract(<<-EOC)
+      class A
+        b(<<~EOF)
+          `c`
+        EOF
+      end
+    EOC
+
+    assert_equal 1, tags.size
+  end
+
   def test_bare_bang
     tags = extract(<<-EOC)
       if condition
