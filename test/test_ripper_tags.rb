@@ -327,22 +327,27 @@ class TagRipperTest < Test::Unit::TestCase
         delegate :z, :to => :thingy, :prefix => true
         delegate :gamma, :to => :thingy, :prefix => :radiation
 
+        delegate :exist?, to: :@model
+        delegate :count, to: :@items, prefix: :itm
+
         def thingy
           Object.new
         end
       end
     EOC
 
-    assert_equal 8, tags.count
+    assert_equal 10, tags.count
     assert_equal '2: method C#foo', inspect(tags[1])
     assert_equal '3: method C#bar', inspect(tags[2])
     assert_equal '4: method C#thingy_x', inspect(tags[3])
     assert_equal '5: method C#pos_y', inspect(tags[4])
     assert_equal '7: method C#thingy_z', inspect(tags[5])
     assert_equal '8: method C#radiation_gamma', inspect(tags[6])
+    assert_equal '10: method C#exist?', inspect(tags[7])
+    assert_equal '11: method C#itm_count', inspect(tags[8])
   end
 
-  def test_def_delegator
+  def test_extract_def_delegator
     tags = extract(<<-EOC)
       class F
         def_delegator :@things, :size, :count
@@ -353,7 +358,7 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal '2: method F#count', inspect(tags[1])
   end
 
-  def test_def_delegators
+  def test_extract_def_delegators
     tags = extract(<<-EOC)
       class F
         def_delegators :@things, :foo, :bar
