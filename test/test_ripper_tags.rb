@@ -350,12 +350,14 @@ class TagRipperTest < Test::Unit::TestCase
   def test_extract_def_delegator
     tags = extract(<<-EOC)
       class F
+        def_delegator :@things, :[]
         def_delegator :@things, :size, :count
       end
     EOC
 
-    assert_equal 2, tags.count
-    assert_equal '2: method F#count', inspect(tags[1])
+    assert_equal 3, tags.count
+    assert_equal '2: method F#[]', inspect(tags[1])
+    assert_equal '3: method F#count', inspect(tags[2])
   end
 
   def test_extract_def_delegators
