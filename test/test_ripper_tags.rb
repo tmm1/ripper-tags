@@ -347,6 +347,18 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal '11: method C#itm_count', inspect(tags[8])
   end
 
+  def test_invalid_delegate
+    tags = extract(<<-EOC)
+      class C
+        delegate
+        delegate "foo"
+        delegate [1, 2]
+      end
+    EOC
+
+    assert_equal 1, tags.count
+  end
+
   def test_extract_def_delegator
     tags = extract(<<-EOC)
       class F
