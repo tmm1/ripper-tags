@@ -73,6 +73,12 @@ class Parser < Ripper
          "scope", "named_scope",
          /^attr_(accessor|reader|writer)$/
       on_method_add_arg([:fcall, name], args[0])
+    when "delegate"
+      on_delegate(*args[0][1..-1])
+    when "def_delegator", "def_instance_delegator"
+      on_def_delegator(*args[0][1..-1])
+    when "def_delegators", "def_instance_delegators"
+      on_def_delegators(*args[0][1..-1])
     end
   end
   def on_bodystmt(*args)
@@ -216,6 +222,43 @@ class Parser < Ripper
       call
     else
       super
+    end
+  end
+
+  # Otherwise hashes and keyword arguments turn into a list of their keys only
+  def on_assoc_new(key, value)
+    [:assoc, key, value]
+  end
+
+  def on_delegate(*args)
+    method_names = args.select { |arg| arg.first.is_a? String }
+    options = args.select { |arg| arg.first.is_a?(Array) && arg.first.first == :assoc }.flatten(1)
+    options = Hash[options.map { |_assoc, key, val| [key.first, val.first] }]
+                  
+    target = options["to:"] || options["to"] # When using hashrocket syntax there is no ':'
+    prefix = options["prefix:"] || options["prefix"]
+    method_prefix = if prefix.is_a?(Array) && prefix.first == "true"
+                      "#{target}_"
+                    elsif prefix.is_a? String
+                      "#{prefix}_"
+                    else
+                      ""
+                    end
+
+    method_names.map do |name, lineno|
+      [:def, "#{method_prefix}#{name}", lineno]
+    end
+  end
+
+  def on_def_delegator(*args)
+    name, lineno = args.last
+    [:def, name, lineno]
+  end
+
+  def on_def_delegators(*args)
+    _target, *names = args
+    names.map do |name, lineno|
+      [:def, name, lineno]
     end
   end
 end
