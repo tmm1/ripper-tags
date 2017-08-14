@@ -19,12 +19,28 @@ module RipperTags
           ]
         end
       end
+
+      if @options.fields
+        unsupported = @options.fields - supported_fields.to_set
+        if unsupported.any?
+          raise FatalError, "these fields are not supported in the '%s' format: %s" % [
+            options.format,
+            unsupported.to_a.join(", ")
+          ]
+        end
+      end
     end
 
     def supported_flags() [] end
 
     def extra_flag?(flag)
       options.extra_flags && options.extra_flags.include?(flag)
+    end
+
+    def supported_fields() [] end
+
+    def field?(field)
+      options.fields && options.fields.include?(field)
     end
 
     def stdout?

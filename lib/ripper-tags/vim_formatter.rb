@@ -3,6 +3,7 @@ require 'ripper-tags/default_formatter'
 module RipperTags
   class VimFormatter < DefaultFormatter
     def supported_flags() ['q'] end
+    def supported_fields() ['n'] end
 
     def include_qualified_names?
       return @include_qualified_names if defined? @include_qualified_names
@@ -59,6 +60,14 @@ module RipperTags
       end
     end
 
+    def display_line_number(tag)
+      if field?('n') && tag[:line]
+        "\tline:%s" % tag[:line]
+      else
+        ""
+      end
+    end
+
     def display_kind(tag)
       case tag.fetch(:kind)
       when 'method' then 'f'
@@ -71,11 +80,12 @@ module RipperTags
     end
 
     def format(tag, name_field = :name)
-      "%s\t%s\t/^%s$/;\"\t%s%s%s" % [
+      "%s\t%s\t/^%s$/;\"\t%s%s%s%s" % [
         tag.fetch(name_field),
         relative_path(tag),
         display_pattern(tag),
         display_kind(tag),
+        display_line_number(tag),
         name_field == :full_name ? nil : display_class(tag),
         display_inheritance(tag),
       ]

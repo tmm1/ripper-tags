@@ -26,7 +26,8 @@ module RipperTags
       :files => %w[.],
       :recursive => false,
       :exclude => %w[.git],
-      :all_files => false
+      :all_files => false,
+      :fields => Set.new
   end
 
   def self.option_parser(options)
@@ -52,6 +53,16 @@ module RipperTags
         else
           options.exclude << pattern
         end
+      end
+      opts.on("--fields=+n", "Include line number information in the tag") do |fields|
+        fields = fields.split("")
+        operation = :add
+        if fields[0] == "+" || fields[0] == "-"
+          operation = :delete if fields.shift == "-"
+        else
+          options.fields.clear
+        end
+        fields.each { |f| options.fields.send(operation, f) }
       end
       opts.on("--all-files", "Parse all files as ruby files, not just `*.rb' ones") do
         options.all_files = true
