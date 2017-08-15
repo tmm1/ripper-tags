@@ -32,6 +32,17 @@ module RipperTags
   end
 
   def self.option_parser(options)
+    flags_string_to_set = lambda do |string, set|
+      flags = string.split("")
+      operation = :add
+      if flags[0] == "+" || flags[0] == "-"
+        operation = :delete if flags.shift == "-"
+      else
+        set.clear
+      end
+      flags.each { |f| set.send(operation, f) }
+    end
+
     OptionParser.new do |opts|
       opts.banner = "Usage: #{opts.program_name} [options] FILES..."
       opts.version = version
@@ -61,15 +72,8 @@ module RipperTags
       opts.on("-n", "Equivalent to --excmd=number.") do
         options.excmd = "number"
       end
-      opts.on("--fields=+n", "Include line number information in the tag") do |fields|
-        fields = fields.split("")
-        operation = :add
-        if fields[0] == "+" || fields[0] == "-"
-          operation = :delete if fields.shift == "-"
-        else
-          options.fields.clear
-        end
-        fields.each { |f| options.fields.send(operation, f) }
+      opts.on("--fields=+n", "Include line number information in the tag") do |flags|
+        flags_string_to_set.call(flags, options.fields)
       end
       opts.on("--all-files", "Parse all files as ruby files, not just `*.rb' ones") do
         options.all_files = true
@@ -84,14 +88,7 @@ module RipperTags
         options.format = "emacs"
       end
       opts.on("--extra=FLAGS", "Specify extra flags for the formatter") do |flags|
-        flags = flags.split("")
-        operation = :add
-        if flags[0] == "+" || flags[0] == "-"
-          operation = :delete if flags.shift == "-"
-        else
-          options.extra_flags.clear
-        end
-        flags.each { |f| options.extra_flags.send(operation, f) }
+        flags_string_to_set.call(flags, options.extra_flags)
       end
 
       opts.separator ""
