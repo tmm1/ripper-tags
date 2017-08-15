@@ -42,7 +42,7 @@ module RipperTags
 
     def display_excmd_info(tag)
       if options.excmd == "number"
-        "%s;\"" % tag.fetch(:line).to_s
+        "%d;\"" % tag.fetch(:line)
       else
         "/^%s$/;\"" % tag.fetch(:pattern).to_s.gsub('\\','\\\\\\\\').gsub('/','\\/')
       end
