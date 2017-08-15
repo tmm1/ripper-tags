@@ -35,9 +35,9 @@ module RipperTags
       if stdout?
         begin
           yield $stdout
-	rescue Errno::EINVAL
-	  raise BrokenPipe
-	end
+        rescue Errno::EINVAL
+          raise BrokenPipe
+        end
       else
         File.open(options.tag_file_name, 'w+') do |outfile|
           yield outfile
