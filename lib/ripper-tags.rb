@@ -27,7 +27,8 @@ module RipperTags
       :recursive => false,
       :exclude => %w[.git],
       :all_files => false,
-      :fields => Set.new
+      :fields => Set.new,
+      :excmd => nil
   end
 
   def self.option_parser(options)
@@ -53,6 +54,12 @@ module RipperTags
         else
           options.exclude << pattern
         end
+      end
+      opts.on("--excmd=number", "Use EX number command to locate tags.") do |excmd|
+        options.excmd = excmd
+      end
+      opts.on("-n", "Equivalent to --excmd=number.") do
+        options.excmd = "number"
       end
       opts.on("--fields=+n", "Include line number information in the tag") do |fields|
         fields = fields.split("")

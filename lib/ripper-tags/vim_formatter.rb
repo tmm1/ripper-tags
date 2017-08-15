@@ -40,8 +40,12 @@ module RipperTags
       const.to_s.gsub('::', '.')
     end
 
-    def display_pattern(tag)
-      tag.fetch(:pattern).to_s.gsub('\\','\\\\\\\\').gsub('/','\\/')
+    def display_excmd_info(tag)
+      if options.excmd == "number"
+        "%s;\"" % tag.fetch(:line).to_s
+      else
+        "/^%s$/;\"" % tag.fetch(:pattern).to_s.gsub('\\','\\\\\\\\').gsub('/','\\/')
+      end
     end
 
     def display_class(tag)
@@ -80,10 +84,10 @@ module RipperTags
     end
 
     def format(tag, name_field = :name)
-      "%s\t%s\t/^%s$/;\"\t%s%s%s%s" % [
+      "%s\t%s\t%s\t%s%s%s%s" % [
         tag.fetch(name_field),
         relative_path(tag),
-        display_pattern(tag),
+        display_excmd_info(tag),
         display_kind(tag),
         display_line_number(tag),
         name_field == :full_name ? nil : display_class(tag),
