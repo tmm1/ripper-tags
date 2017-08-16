@@ -9,11 +9,15 @@ module RipperTags
 
     def initialize(options)
       @options = options
+      check_supported_flags(@options.extra_flags, supported_flags)
+      check_supported_flags(@options.fields, supported_fields)
+    end
 
-      if @options.extra_flags
-        unsupported = @options.extra_flags - supported_flags.to_set
+    def check_supported_flags(set, supported)
+      if set
+        unsupported = set - supported.to_set
         if unsupported.any?
-          raise FatalError, "these flags are not supported in the '%s' format: %s" % [
+          raise FatalError, "these fields are not supported in the '%s' format: %s" % [
             options.format,
             unsupported.to_a.join(", ")
           ]
@@ -25,6 +29,12 @@ module RipperTags
 
     def extra_flag?(flag)
       options.extra_flags && options.extra_flags.include?(flag)
+    end
+
+    def supported_fields() [] end
+
+    def field?(field)
+      options.fields && options.fields.include?(field)
     end
 
     def stdout?
