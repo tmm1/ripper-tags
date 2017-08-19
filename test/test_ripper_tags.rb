@@ -95,7 +95,7 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal 'A::B::D', tags[2][:class]
   end
 
-  def test_extract_access
+  def test_extract_access_and_kind
     tags = extract(<<-EOC)
       class Test
         def abc() end
@@ -105,13 +105,33 @@ class TagRipperTest < Test::Unit::TestCase
         def ghi() end
       public
         def jkl() end
+      private def mno() end
+      protected def pqr() end
+      public def stu() end
+      public_class_method def self.abcd() end
+      private_class_method def self.efgh() end
+      public_class_method
+        def self.ijkl() end
+      private_class_method
+        def self.mnop() end
       end
     EOC
 
-    assert_equal nil,         tags.find{ |t| t[:name] == 'abc' }[:access]
-    assert_equal 'private',   tags.find{ |t| t[:name] == 'def' }[:access]
-    assert_equal 'protected', tags.find{ |t| t[:name] == 'ghi' }[:access]
-    assert_equal 'public',    tags.find{ |t| t[:name] == 'jkl' }[:access]
+    assert_equal nil,                tags.find{ |t| t[:name] == 'abc' }[:access]
+    assert_equal 'private',          tags.find{ |t| t[:name] == 'def' }[:access]
+    assert_equal 'protected',        tags.find{ |t| t[:name] == 'ghi' }[:access]
+    assert_equal 'public',           tags.find{ |t| t[:name] == 'jkl' }[:access]
+    assert_equal 'private',          tags.find{ |t| t[:name] == 'mno' }[:access]
+    assert_equal 'protected',        tags.find{ |t| t[:name] == 'pqr' }[:access]
+    assert_equal 'public',           tags.find{ |t| t[:name] == 'stu' }[:access]
+    assert_equal 'public',           tags.find{ |t| t[:name] == 'abcd' }[:access]
+    assert_equal 'singleton method', tags.find{ |t| t[:name] == 'abcd' }[:kind]
+    assert_equal 'private',          tags.find{ |t| t[:name] == 'efgh' }[:access]
+    assert_equal 'singleton method', tags.find{ |t| t[:name] == 'efgh' }[:kind]
+    assert_equal 'public',           tags.find{ |t| t[:name] == 'ijkl' }[:access]
+    assert_equal 'singleton method', tags.find{ |t| t[:name] == 'ijkl' }[:kind]
+    assert_equal 'private',          tags.find{ |t| t[:name] == 'mnop' }[:access]
+    assert_equal 'singleton method', tags.find{ |t| t[:name] == 'mnop' }[:kind]
   end
 
   def test_extract_module_eval
