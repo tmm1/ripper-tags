@@ -101,17 +101,66 @@ class TagRipperTest < Test::Unit::TestCase
         def abc() end
       private
         def def() end
-      protected
-        def ghi() end
       public
+        def ghi() end
+      protected
         def jkl() end
+      public_class_method
+        def self.mno() end
+      private_class_method
+        def self.pqr() end
       end
     EOC
 
-    assert_equal nil,         tags.find{ |t| t[:name] == 'abc' }[:access]
-    assert_equal 'private',   tags.find{ |t| t[:name] == 'def' }[:access]
-    assert_equal 'protected', tags.find{ |t| t[:name] == 'ghi' }[:access]
-    assert_equal 'public',    tags.find{ |t| t[:name] == 'jkl' }[:access]
+    assert_equal nil,                tags.find{ |t| t[:name] == 'abc' }[:access]
+    assert_equal 'private',          tags.find{ |t| t[:name] == 'def' }[:access]
+    assert_equal 'public',           tags.find{ |t| t[:name] == 'ghi' }[:access]
+    assert_equal 'protected',        tags.find{ |t| t[:name] == 'jkl' }[:access]
+    assert_equal 'public',           tags.find{ |t| t[:name] == 'mno' }[:access]
+    assert_equal 'singleton method', tags.find{ |t| t[:name] == 'mno' }[:kind]
+    assert_equal 'private',          tags.find{ |t| t[:name] == 'pqr' }[:access]
+    assert_equal 'singleton method', tags.find{ |t| t[:name] == 'pqr' }[:kind]
+  end
+
+  def test_extract_access_scope_inheritance
+    %w(private public protected).each do |visibility|
+      tags = extract(<<-EOC)
+        class Test
+        #{visibility}
+          def abc() end
+          def def() end
+          def ghi() end
+      EOC
+
+      assert tags.all?{ |t| t[:access] == visibility }
+    end
+  end
+
+  def test_extract_one_line_definition_access
+    %w(private public protected).each do |visibility|
+      tags = extract(<<-EOC)
+        class Test
+          #{visibility} def abc() end
+          def def() end
+        end
+      EOC
+
+      assert_equal visibility, tags.find{ |t| t[:name] == 'abc' }[:access]
+      assert_equal nil, tags.find{ |t| t[:name] == 'def' }[:access]
+    end
+
+    %w(private_class_method public_class_method).each do |visibility|
+      tags = extract(<<-EOC)
+        class Test
+          #{visibility} def self.abc() end
+          def self.def() end
+        end
+      EOC
+
+      scope = visibility.sub("_class_method", "")
+      assert_equal scope, tags.find{ |t| t[:name] == 'abc' }[:access]
+      assert_equal nil, tags.find{ |t| t[:name] == 'def' }[:access]
+    end
   end
 
   def test_extract_module_eval
