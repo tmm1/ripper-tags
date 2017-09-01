@@ -28,7 +28,8 @@ module RipperTags
       :exclude => %w[.git],
       :all_files => false,
       :fields => Set.new,
-      :excmd => nil
+      :excmd => nil,
+      :input_file => nil
   end
 
   def self.option_parser(options)
@@ -55,6 +56,9 @@ module RipperTags
       end
       opts.on("--tag-relative[=OPTIONAL]", "Make file paths relative to the directory of the tag file") do |value|
         options.tag_relative = value != "no"
+      end
+      opts.on("-L", "--input-files=FILE", "Read paths to process from given file; use `-` for stdin") do |file|
+        options.input_file = file
       end
       opts.on("-R", "--recursive", "Descend recursively into subdirectories") do
         options.recursive = true
@@ -135,8 +139,8 @@ module RipperTags
       file_list = optparse.parse(argv)
       if !file_list.empty?
         options.files = file_list
-      elsif !options.recursive
-        raise OptionParser::InvalidOption, "needs either a list of files or `-R' flag"
+      elsif !(options.recursive || options.input_file)
+        raise OptionParser::InvalidOption, "needs either a list of files, `-L`, or `-R' flag"
       end
       options.tag_file_name ||= options.format == 'emacs' ? './TAGS' : './tags'
       options.format ||= File.basename(options.tag_file_name) == 'TAGS' ? 'emacs' : 'vim'
