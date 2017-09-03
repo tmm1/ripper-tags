@@ -58,6 +58,7 @@ module RipperTags
         options.tag_relative = value != "no"
       end
       opts.on("-L", "--input-files=FILE", "Read paths to process from given file; use `-` for stdin") do |file|
+        options.all_files = true
         options.input_file = file
       end
       opts.on("-R", "--recursive", "Descend recursively into subdirectories") do
