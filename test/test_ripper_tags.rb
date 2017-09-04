@@ -87,9 +87,23 @@ class TagRipperTest < Test::Unit::TestCase
         E = 3 => F = 4,
         x: G = 5
       }
+
+      H = []
+
+      I = [
+        J = [
+          K = 1
+        ]
+      ]
+
+      L = {
+        'some key' => {
+          M = 2 => 3
+        }
+      }
     EOC
 
-    assert_equal ('A'..'G').to_a, tags.map { |t| t[:name] }.sort
+    assert_equal ('A'..'M').to_a, tags.map { |t| t[:name] }.sort
     tags.each do |t|
       assert_equal t[:name], t[:full_name]
     end

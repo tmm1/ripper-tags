@@ -105,7 +105,7 @@ class Parser < Ripper
   end
 
   def on_assoc_new(*args)
-    args
+    args.compact
   end
 
   undef on_tstring_content
