@@ -1,6 +1,6 @@
 language: ruby
 before_install:
-  - gem install bundler -v 1.11.2
+  - bundle --version 2>/dev/null | grep -q '1.7.6' && gem install bundler -v 1.11.2 || true
 cache: bundler
 rvm:
 - 1.9.3
