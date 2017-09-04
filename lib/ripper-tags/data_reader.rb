@@ -81,26 +81,32 @@ module RipperTags
 
     def each_file(&block)
       return to_enum(__method__) unless block_given?
+      each_input_file do |file|
+        resolve_file(file, &block)
+      end
+    end
+
+    def each_input_file(&block)
       if options.input_file
-        enum = (options.input_file == "-") ? $stdin.each_line : File.new(options.input_file, DataReader.read_mode).each
-        enum.each { |file| resolve_file(file.chomp, &block) }
+        io = options.input_file == "-" ? $stdin : File.new(options.input_file, DataReader::READ_MODE)
+        begin
+          io.each_line { |line| yield line.chomp }
+        ensure
+          io.close
+        end
       else
-        options.files.each { |file| resolve_file(file, &block) }
+        options.files.each(&block)
       end
     end
   end
 
   class DataReader
     attr_reader :options
-    attr_accessor :read_mode
 
-    def self.read_mode
-      defined?(::Encoding) ? 'r:utf-8' : 'r'
-    end
+    READ_MODE = 'r:utf-8'
 
     def initialize(options)
       @options = options
-      @read_mode = self.class.read_mode
     end
 
     def file_finder
@@ -108,7 +114,7 @@ module RipperTags
     end
 
     def read_file(filename)
-      str = File.open(filename, read_mode) {|f| f.read }
+      str = File.open(filename, READ_MODE) {|f| f.read }
       normalize_encoding(str)
     end
 
