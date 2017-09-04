@@ -49,8 +49,8 @@ module RipperTags
       file.end_with?(RUBY_EXT)
     end
 
-    def include_file?(file)
-      (options.all_files || ruby_file?(file)) && !exclude_file?(file)
+    def include_file?(file, depth)
+      (depth == 0 || options.all_files || ruby_file?(file)) && !exclude_file?(file)
     end
 
     def resolve_file(file, depth = 0, &block)
@@ -66,7 +66,7 @@ module RipperTags
         end
       elsif depth > 0 || File.exist?(file)
         file = clean_path(file) if depth == 0
-        yield file if include_file?(file)
+        yield file if include_file?(file, depth)
       else
         $stderr.puts "%s: %p: no such file or directory" % [
           File.basename($0),

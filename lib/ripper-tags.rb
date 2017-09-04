@@ -58,7 +58,6 @@ module RipperTags
         options.tag_relative = value != "no"
       end
       opts.on("-L", "--input-files=FILE", "Read paths to process from given file; use `-` for stdin") do |file|
-        options.all_files = true
         options.input_file = file
       end
       opts.on("-R", "--recursive", "Descend recursively into subdirectories") do
@@ -80,7 +79,7 @@ module RipperTags
       opts.on("--fields=+n", "Include line number information in the tag") do |flags|
         flags_string_to_set.call(flags, options.fields)
       end
-      opts.on("--all-files", "Parse all files as ruby files, not just `*.rb' ones") do
+      opts.on("--all-files", "Parse all files in recursive mode (default: parse `*.rb' files)") do
         options.all_files = true
       end
 

@@ -47,7 +47,7 @@ class DataReaderTest < Test::Unit::TestCase
 
   def test_file_finder_no_exclude
     files = in_fixtures { find_files('.', :exclude => []) }
-    assert files.include?('_git/hooks/hook.rb'), files.inspect
+    assert_include files, '_git/hooks/hook.rb'
   end
 
   def test_file_finder_exclude
@@ -72,6 +72,27 @@ class DataReaderTest < Test::Unit::TestCase
       very/inter.rb
     ]
     assert_equal expected, files.sort
+  end
+
+  def test_file_finder_all
+    files = in_fixtures { find_files('.', :all_files => true) }
+    assert_include files, 'non-script.txt'
+    assert_include files, 'very/deep/non-ruby.py'
+  end
+
+  def test_file_finder_always_include_exact_match
+    files = in_fixtures { find_files('non-script.txt', 'very', :all_files => false) }
+    expected = %w[
+      non-script.txt
+      very/deep/script.rb
+      very/inter.rb
+    ]
+    assert_equal expected, files.sort
+  end
+
+  def test_file_finder_exact_match_respects_exclude
+    files = in_fixtures { find_files('encoding.rb', :exclude => ['encoding']) }
+    assert_equal [], files
   end
 
   def in_fixtures
