@@ -1,7 +1,6 @@
 require 'test/unit'
 require 'stringio'
 require 'set'
-require 'tempfile'
 require 'ripper-tags'
 
 class CliTest < Test::Unit::TestCase
