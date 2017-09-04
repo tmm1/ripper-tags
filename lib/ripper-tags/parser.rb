@@ -95,6 +95,12 @@ class Parser < Ripper
     end
   end
 
+  def on_array(args)
+    if args && args[0] == :args
+      args[1..-1]
+    end
+  end
+
   def on_assoc_new(*args)
     args
   end
@@ -389,7 +395,6 @@ end
     end
 
     def on_args(*args)
-      process(args)
     end
 
     def on_call(*args)
