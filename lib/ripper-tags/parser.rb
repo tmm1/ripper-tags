@@ -65,6 +65,9 @@ class Parser < Ripper
   def on_binary(*args)
   end
 
+  def on_unary(*args)
+  end
+
   def on_command(name, *args)
     case name[0]
     when "define_method", "alias_method",
