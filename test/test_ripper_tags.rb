@@ -84,6 +84,7 @@ class TagRipperTest < Test::Unit::TestCase
 
       DISPLAY_MAPPING = {
         CANCELLED = 'cancelled' => 'Cancelled by user',
+        STARTED = 'started' => 'Started by user',
       }
     EOC
 
@@ -91,6 +92,7 @@ class TagRipperTest < Test::Unit::TestCase
       OPEN
       STATUSES
       CANCELLED
+      STARTED
       DISPLAY_MAPPING
     ], tags.map { |t| t[:name] }
 

@@ -1,12 +1,10 @@
 require 'ripper'
-require 'pp'
 
 module RipperTags
 
 class Parser < Ripper
   def self.extract(data, file='(eval)')
     sexp = new(data, file).parse
-    puts "parsed sexp: #{sexp.inspect}"
     Visitor.new(sexp, file, data).tags
   end
 
@@ -106,13 +104,15 @@ class Parser < Ripper
   end
 
   def on_array(args)
-    if args && args[0] == :args
+    if args.is_a?(Array) && args[0] == :args
       args[1..-1]
     end
   end
 
   def on_hash(args)
-    args
+    return unless args
+
+    args.select { |arg| arg.is_a?(Array) && arg[0] == :assoc }.map { |_assoc, k, _v| k }
   end
 
   undef on_tstring_content
@@ -260,7 +260,7 @@ class Parser < Ripper
     method_names = args.select { |arg| arg.first.is_a? String }
     options = args.select { |arg| arg.first.is_a?(Array) && arg.first.first == :assoc }.flatten(1)
     options = Hash[options.map { |_assoc, key, val| [key.first, val.first] }]
-                  
+
     target = options["to:"] || options["to"] # When using hashrocket syntax there is no ':'
     prefix = options["prefix:"] || options["prefix"]
     method_prefix = if prefix.is_a?(Array) && prefix.first == "true"
@@ -288,16 +288,6 @@ class Parser < Ripper
     end
   end
 end
-
-puts "sexp: "
-code = <<-CODE
-  DISPLAY_MAPPING = {
-    CANCELLED = 'cancelled' => 'Cancelled by user',
-  }
-CODE
-
-pp Parser.sexp(code)
-pp Parser.new(code, 'input').parse
 
   class Visitor
     attr_reader :tags
