@@ -104,8 +104,8 @@ class Parser < Ripper
     end
   end
 
-  def on_assoc_new(*args)
-    args.compact
+  def on_hash(args)
+    args
   end
 
   undef on_tstring_content
