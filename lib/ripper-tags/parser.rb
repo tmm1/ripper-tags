@@ -397,14 +397,12 @@ end
       @namespace.pop
     end
 
-    def on_args(*args)
-    end
-
     def on_call(*args)
     end
     alias on_aref_field on_call
     alias on_field on_call
     alias on_fcall on_call
+    alias on_args on_call
     alias on_! on_call
   end
 end
