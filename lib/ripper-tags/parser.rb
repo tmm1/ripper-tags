@@ -231,6 +231,11 @@ class Parser < Ripper
   end
 end
 
+puts "Parser instance methods:"
+puts Parser.instance_methods.sort
+puts "\n\nSCANNER_EVENTS:"
+puts Ripper::SCANNER_EVENTS.sort
+
   class Visitor
     attr_reader :tags
 
