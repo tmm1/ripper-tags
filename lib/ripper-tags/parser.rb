@@ -233,7 +233,7 @@ class Parser < Ripper
 end
 
 puts "sexp: "
-code = <<~CODE
+code = <<-CODE
   DISPLAY_MAPPING = {
     CANCELLED = 'cancelled' => 'Cancelled by user',
   }
