@@ -401,5 +401,9 @@ end
     alias on_fcall on_call
     alias on_args on_call
     alias on_! on_call
+
+    def on_assoc(*args)
+      puts "on_assoc called with #{args.inspect} from #{caller.join("\n")}"
+    end
   end
 end
