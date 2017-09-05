@@ -1,4 +1,5 @@
 require 'ripper'
+require 'pp'
 
 module RipperTags
 
@@ -231,10 +232,15 @@ class Parser < Ripper
   end
 end
 
-puts "Parser instance methods:"
-puts Parser.instance_methods.sort
-puts "\n\nSCANNER_EVENTS:"
-puts Ripper::SCANNER_EVENTS.sort
+puts "sexp: "
+code = <<~CODE
+  DISPLAY_MAPPING = {
+    CANCELLED = 'cancelled' => 'Cancelled by user',
+  }
+CODE
+
+pp Parser.sexp(code)
+pp Parser.new(code, 'input').parse
 
   class Visitor
     attr_reader :tags
