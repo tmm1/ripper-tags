@@ -5,6 +5,7 @@ module RipperTags
 class Parser < Ripper
   def self.extract(data, file='(eval)')
     sexp = new(data, file).parse
+    puts "parsed sexp: #{sexp.inspect}"
     Visitor.new(sexp, file, data).tags
   end
 
