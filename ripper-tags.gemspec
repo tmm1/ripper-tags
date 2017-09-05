@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
   s.bindir = 'bin'
   s.executables << 'ripper-tags'
+  s.required_ruby_version = '>= 1.9'
 
   s.license = 'MIT'
 

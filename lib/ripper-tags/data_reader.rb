@@ -49,8 +49,8 @@ module RipperTags
       file.end_with?(RUBY_EXT)
     end
 
-    def include_file?(file)
-      (options.all_files || ruby_file?(file)) && !exclude_file?(file)
+    def include_file?(file, depth)
+      (depth == 0 || options.all_files || ruby_file?(file)) && !exclude_file?(file)
     end
 
     def resolve_file(file, depth = 0, &block)
@@ -66,8 +66,8 @@ module RipperTags
         end
       elsif depth > 0 || File.exist?(file)
         file = clean_path(file) if depth == 0
-        yield file if include_file?(file)
-      elsif
+        yield file if include_file?(file, depth)
+      else
         $stderr.puts "%s: %p: no such file or directory" % [
           File.basename($0),
           file
@@ -81,19 +81,32 @@ module RipperTags
 
     def each_file(&block)
       return to_enum(__method__) unless block_given?
-      options.files.each do |file|
+      each_input_file do |file|
         resolve_file(file, &block)
+      end
+    end
+
+    def each_input_file(&block)
+      if options.input_file
+        io = options.input_file == "-" ? $stdin : File.new(options.input_file, DataReader::READ_MODE)
+        begin
+          io.each_line { |line| yield line.chomp }
+        ensure
+          io.close
+        end
+      else
+        options.files.each(&block)
       end
     end
   end
 
   class DataReader
     attr_reader :options
-    attr_accessor :read_mode
+
+    READ_MODE = 'r:utf-8'
 
     def initialize(options)
       @options = options
-      @read_mode = defined?(::Encoding) ? 'r:utf-8' : 'r'
     end
 
     def file_finder
@@ -101,7 +114,7 @@ module RipperTags
     end
 
     def read_file(filename)
-      str = File.open(filename, read_mode) {|f| f.read }
+      str = File.open(filename, READ_MODE) {|f| f.read }
       normalize_encoding(str)
     end
 

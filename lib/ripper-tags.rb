@@ -9,7 +9,7 @@ require 'ripper-tags/vim_formatter'
 require 'ripper-tags/json_formatter'
 
 module RipperTags
-  def self.version() "0.3.4" end
+  def self.version() "0.3.5" end
 
   FatalError = Class.new(RuntimeError)
 
@@ -26,10 +26,24 @@ module RipperTags
       :files => %w[.],
       :recursive => false,
       :exclude => %w[.git],
-      :all_files => false
+      :all_files => false,
+      :fields => Set.new,
+      :excmd => nil,
+      :input_file => nil
   end
 
   def self.option_parser(options)
+    flags_string_to_set = lambda do |string, set|
+      flags = string.split("")
+      operation = :add
+      if flags[0] == "+" || flags[0] == "-"
+        operation = :delete if flags.shift == "-"
+      else
+        set.clear
+      end
+      flags.each { |f| set.send(operation, f) }
+    end
+
     OptionParser.new do |opts|
       opts.banner = "Usage: #{opts.program_name} [options] FILES..."
       opts.version = version
@@ -43,6 +57,9 @@ module RipperTags
       opts.on("--tag-relative[=OPTIONAL]", "Make file paths relative to the directory of the tag file") do |value|
         options.tag_relative = value != "no"
       end
+      opts.on("-L", "--input-file=FILE", "File to read paths to process trom (use `-` for stdin)") do |file|
+        options.input_file = file
+      end
       opts.on("-R", "--recursive", "Descend recursively into subdirectories") do
         options.recursive = true
       end
@@ -53,7 +70,16 @@ module RipperTags
           options.exclude << pattern
         end
       end
-      opts.on("--all-files", "Parse all files as ruby files, not just `*.rb' ones") do
+      opts.on("--excmd=number", "Use EX number command to locate tags.") do |excmd|
+        options.excmd = excmd
+      end
+      opts.on("-n", "Equivalent to --excmd=number.") do
+        options.excmd = "number"
+      end
+      opts.on("--fields=+n", "Include line number information in the tag") do |flags|
+        flags_string_to_set.call(flags, options.fields)
+      end
+      opts.on("--all-files", "Parse all files in recursive mode (default: parse `*.rb' files)") do
         options.all_files = true
       end
 
@@ -66,14 +92,7 @@ module RipperTags
         options.format = "emacs"
       end
       opts.on("--extra=FLAGS", "Specify extra flags for the formatter") do |flags|
-        flags = flags.split("")
-        operation = :add
-        if flags[0] == "+" || flags[0] == "-"
-          operation = :delete if flags.shift == "-"
-        else
-          options.extra_flags.clear
-        end
-        flags.each { |f| options.extra_flags.send(operation, f) }
+        flags_string_to_set.call(flags, options.extra_flags)
       end
 
       opts.separator ""
@@ -120,8 +139,8 @@ module RipperTags
       file_list = optparse.parse(argv)
       if !file_list.empty?
         options.files = file_list
-      elsif !options.recursive
-        raise OptionParser::InvalidOption, "needs either a list of files or `-R' flag"
+      elsif !(options.recursive || options.input_file)
+        raise OptionParser::InvalidOption, "needs either a list of files, `-L`, or `-R' flag"
       end
       options.tag_file_name ||= options.format == 'emacs' ? './TAGS' : './tags'
       options.format ||= File.basename(options.tag_file_name) == 'TAGS' ? 'emacs' : 'vim'

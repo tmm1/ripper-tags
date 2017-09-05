@@ -124,17 +124,66 @@ class TagRipperTest < Test::Unit::TestCase
         def abc() end
       private
         def def() end
-      protected
-        def ghi() end
       public
+        def ghi() end
+      protected
         def jkl() end
+      public_class_method
+        def self.mno() end
+      private_class_method
+        def self.pqr() end
       end
     EOC
 
-    assert_equal nil,         tags.find{ |t| t[:name] == 'abc' }[:access]
-    assert_equal 'private',   tags.find{ |t| t[:name] == 'def' }[:access]
-    assert_equal 'protected', tags.find{ |t| t[:name] == 'ghi' }[:access]
-    assert_equal 'public',    tags.find{ |t| t[:name] == 'jkl' }[:access]
+    assert_equal nil,                tags.find{ |t| t[:name] == 'abc' }[:access]
+    assert_equal 'private',          tags.find{ |t| t[:name] == 'def' }[:access]
+    assert_equal 'public',           tags.find{ |t| t[:name] == 'ghi' }[:access]
+    assert_equal 'protected',        tags.find{ |t| t[:name] == 'jkl' }[:access]
+    assert_equal 'public',           tags.find{ |t| t[:name] == 'mno' }[:access]
+    assert_equal 'singleton method', tags.find{ |t| t[:name] == 'mno' }[:kind]
+    assert_equal 'private',          tags.find{ |t| t[:name] == 'pqr' }[:access]
+    assert_equal 'singleton method', tags.find{ |t| t[:name] == 'pqr' }[:kind]
+  end
+
+  def test_extract_access_scope_inheritance
+    %w(private public protected).each do |visibility|
+      tags = extract(<<-EOC)
+        class Test
+        #{visibility}
+          def abc() end
+          def def() end
+          def ghi() end
+      EOC
+
+      assert tags.all?{ |t| t[:access] == visibility }
+    end
+  end
+
+  def test_extract_one_line_definition_access
+    %w(private public protected).each do |visibility|
+      tags = extract(<<-EOC)
+        class Test
+          #{visibility} def abc() end
+          def def() end
+        end
+      EOC
+
+      assert_equal visibility, tags.find{ |t| t[:name] == 'abc' }[:access]
+      assert_equal nil, tags.find{ |t| t[:name] == 'def' }[:access]
+    end
+
+    %w(private_class_method public_class_method).each do |visibility|
+      tags = extract(<<-EOC)
+        class Test
+          #{visibility} def self.abc() end
+          def self.def() end
+        end
+      EOC
+
+      scope = visibility.sub("_class_method", "")
+      assert_equal scope, tags.find{ |t| t[:name] == 'abc' }[:access]
+      assert_equal nil, tags.find{ |t| t[:name] == 'def' }[:access]
+    end
   end
 
   def test_extract_module_eval
@@ -339,6 +388,74 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal '3: scope C.red',  inspect(tags[2])
   end
 
+  def test_extract_delegate
+    tags = extract(<<-EOC)
+      class C
+        delegate :foo,
+                 :bar, to: :thingy
+        delegate :x, to: :thingy, prefix: true
+        delegate :y, to: :thingy, prefix: :pos
+
+        delegate :z, :to => :thingy, :prefix => true
+        delegate :gamma, :to => :thingy, :prefix => :radiation
+
+        delegate :exist?, to: :@model
+        delegate :count, to: :@items, prefix: :itm
+
+        def thingy
+          Object.new
+        end
+      end
+    EOC
+
+    assert_equal 10, tags.count
+    assert_equal '2: method C#foo', inspect(tags[1])
+    assert_equal '3: method C#bar', inspect(tags[2])
+    assert_equal '4: method C#thingy_x', inspect(tags[3])
+    assert_equal '5: method C#pos_y', inspect(tags[4])
+    assert_equal '7: method C#thingy_z', inspect(tags[5])
+    assert_equal '8: method C#radiation_gamma', inspect(tags[6])
+    assert_equal '10: method C#exist?', inspect(tags[7])
+    assert_equal '11: method C#itm_count', inspect(tags[8])
+  end
+
+  def test_invalid_delegate
+    tags = extract(<<-EOC)
+      class C
+        delegate
+        delegate "foo"
+        delegate [1, 2]
+      end
+    EOC
+
+    assert_equal 1, tags.count
+  end
+
+  def test_extract_def_delegator
+    tags = extract(<<-EOC)
+      class F
+        def_delegator :@things, :[]
+        def_delegator :@things, :size, :count
+      end
+    EOC
+
+    assert_equal 3, tags.count
+    assert_equal '2: method F#[]', inspect(tags[1])
+    assert_equal '3: method F#count', inspect(tags[2])
+  end
+
+  def test_extract_def_delegators
+    tags = extract(<<-EOC)
+      class F
+        def_delegators :@things, :foo, :bar
+      end
+    EOC
+
+    assert_equal 3, tags.count
+    assert_equal '2: method F#foo', inspect(tags[1])
+    assert_equal '2: method F#bar', inspect(tags[2])
+  end
+
   def test_extract_from_erb
     tags = extract(<<-EOC)
       class NavigationTest < ActionDispatch::IntegrationTest
@@ -472,6 +589,18 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal 2, tags.size
     assert_equal 'foo', tags[0][:name]
     assert_equal 'bar', tags[1][:name]
+  end
+
+  def test_heredoc_backticks
+    tags = extract(<<-EOC)
+      class A
+        b(<<~EOF)
+          `c`
+        EOF
+      end
+    EOC
+
+    assert_equal 1, tags.size
   end
 
   def test_bare_bang
