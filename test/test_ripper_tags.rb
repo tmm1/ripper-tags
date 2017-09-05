@@ -78,32 +78,22 @@ class TagRipperTest < Test::Unit::TestCase
 
   def test_nested_constant_definitions
     tags = extract(<<-EOC)
-      A = [
-        B = 1,
-        C = 2
+      STATUSES = [
+        OPEN = 'open',
       ]
 
-      D = {
-        E = 3 => F = 4,
-        x: G = 5
-      }
-
-      H = []
-
-      I = [
-        J = [
-          K = 1
-        ]
-      ]
-
-      L = {
-        'some key' => {
-          M = 2 => 3
-        }
+      DISPLAY_MAPPING = {
+        CANCELLED = 'cancelled' => 'Cancelled by user',
       }
     EOC
 
-    assert_equal ('A'..'M').to_a, tags.map { |t| t[:name] }.sort
+    assert_equal %w[
+      OPEN
+      STATUSES
+      CANCELLED
+      DISPLAY_MAPPING
+    ], tags.map { |t| t[:name] }
+
     tags.each do |t|
       assert_equal t[:name], t[:full_name]
     end
