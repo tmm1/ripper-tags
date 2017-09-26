@@ -152,7 +152,6 @@ module RipperTags
             argv.delete(bad_option)
             invalid_options << bad_option
           end
-          retry
         end
       end
       
