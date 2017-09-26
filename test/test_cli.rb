@@ -17,9 +17,16 @@ class CliTest < Test::Unit::TestCase
 
   def test_invalid_option
     err = assert_raise(OptionParser::InvalidOption) do
-      RipperTags.process_args(%[--moo])
+      RipperTags.process_args(%w[--moo])
     end
     assert_equal "invalid option: --moo", err.message
+  end
+
+  def test_invalid_option_with_ignored
+    err = assert_raise(OptionParser::InvalidOption) do
+      RipperTags.process_args(%w[--moo --ignore-unsupported-options])
+    end
+    assert_equal "invalid option: needs either a list of files, `-L`, or `-R' flag", err.message
   end
 
   def test_recurse_defaults_to_current_dir

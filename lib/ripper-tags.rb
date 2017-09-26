@@ -29,7 +29,8 @@ module RipperTags
       :all_files => false,
       :fields => Set.new,
       :excmd => nil,
-      :input_file => nil
+      :input_file => nil,
+      :ignore_unsupported => false
   end
 
   def self.option_parser(options)
@@ -125,6 +126,9 @@ module RipperTags
           exit 1
         end
       end
+      opts.on_tail("--ignore-unsupported-options", "Don't fail when unsupported options given, just skip them") do
+        options.ignore_unsupported = true
+      end
       opts.on_tail("-v", "--version", "Print version information") do
         puts opts.ver
         exit
@@ -136,15 +140,37 @@ module RipperTags
 
   def self.process_args(argv, run = method(:run))
     option_parser(default_options) do |optparse, options|
-      file_list = optparse.parse(argv)
+      invalid_options = []
+      file_list = []
+
+      while argv.size > 0
+        begin
+          file_list = optparse.parse(argv)
+        rescue OptionParser::InvalidOption => err
+          err.args.each do |bad_option|
+            argv.delete(bad_option)
+            invalid_options << bad_option
+          end
+          retry
+        else
+          break
+        end
+      end
+      
+      if invalid_options.size > 0 && !options.ignore_unsupported
+        raise OptionParser::InvalidOption, invalid_options.first
+      end
+
       if !file_list.empty?
         options.files = file_list
       elsif !(options.recursive || options.input_file)
         raise OptionParser::InvalidOption, "needs either a list of files, `-L`, or `-R' flag"
       end
+
       options.tag_file_name ||= options.format == 'emacs' ? './TAGS' : './tags'
       options.format ||= File.basename(options.tag_file_name) == 'TAGS' ? 'emacs' : 'vim'
       options.tag_relative = options.format == "emacs" if options.tag_relative.nil?
+
       return run.call(options)
     end
   end
