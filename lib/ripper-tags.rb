@@ -146,14 +146,13 @@ module RipperTags
       while argv.size > 0
         begin
           file_list = optparse.parse(argv)
+          break
         rescue OptionParser::InvalidOption => err
           err.args.each do |bad_option|
             argv.delete(bad_option)
             invalid_options << bad_option
           end
           retry
-        else
-          break
         end
       end
       
