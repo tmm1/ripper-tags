@@ -302,7 +302,7 @@ class TagRipperTest < Test::Unit::TestCase
   def test_extract_attr_accessor
     tags = extract(<<-EOC)
       module M
-        attr_accessor :a, :b
+        attr_accessor :a, "b"
         attr_reader(:a, :b)
         attr_writer(:a, :b)
       end
@@ -378,6 +378,7 @@ class TagRipperTest < Test::Unit::TestCase
 
         delegate :exist?, to: :@model
         delegate :count, to: :@items, prefix: :itm
+        delegate :headers, to: "@_response"
 
         def thingy
           Object.new
@@ -385,7 +386,7 @@ class TagRipperTest < Test::Unit::TestCase
       end
     EOC
 
-    assert_equal 10, tags.count
+    assert_equal 11, tags.count
     assert_equal '2: method C#foo', inspect(tags[1])
     assert_equal '3: method C#bar', inspect(tags[2])
     assert_equal '4: method C#thingy_x', inspect(tags[3])
@@ -394,13 +395,13 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal '8: method C#radiation_gamma', inspect(tags[6])
     assert_equal '10: method C#exist?', inspect(tags[7])
     assert_equal '11: method C#itm_count', inspect(tags[8])
+    assert_equal '12: method C#headers', inspect(tags[9])
   end
 
   def test_invalid_delegate
     tags = extract(<<-EOC)
       class C
         delegate
-        delegate "foo"
         delegate [1, 2]
       end
     EOC

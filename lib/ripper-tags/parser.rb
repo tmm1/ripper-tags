@@ -108,6 +108,21 @@ class Parser < Ripper
     str
   end
 
+  def on_string_add(*args)
+    [args[1], lineno]
+  end
+
+  def on_string_embexpr(*)
+    :string_embexpr
+  end
+  def on_string_dvar(*)
+    :string_embexpr
+  end
+  def on_string_literal(*args)
+    args = args.flatten
+    args unless args.include?(:string_embexpr)
+  end
+
   def on_xstring_add(first, arg)
     arg if first.nil?
   end
@@ -248,7 +263,7 @@ class Parser < Ripper
     method_names = args.select { |arg| arg.first.is_a? String }
     options = args.select { |arg| arg.first.is_a?(Array) && arg.first.first == :assoc }.flatten(1)
     options = Hash[options.map { |_assoc, key, val| [key.first, val.first] }]
-                  
+
     target = options["to:"] || options["to"] # When using hashrocket syntax there is no ':'
     prefix = options["prefix:"] || options["prefix"]
     method_prefix = if prefix.is_a?(Array) && prefix.first == "true"
