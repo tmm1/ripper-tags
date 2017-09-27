@@ -81,6 +81,42 @@ class TagRipperTest < Test::Unit::TestCase
     ], tags.map{ |t| t[:full_name] }
   end
 
+  def test_nested_constant_definitions
+    tags = extract(<<-EOC)
+      STATUSES = [
+        OPEN = 'open',
+      ]
+
+      DISPLAY_MAPPING = {
+        CANCELLED = 'cancelled' => 'Cancelled by user',
+        STARTED = 'started' => 'Started by user',
+      }
+    EOC
+
+    assert_equal %w[
+      OPEN
+      STATUSES
+      CANCELLED
+      STARTED
+      DISPLAY_MAPPING
+    ], tags.map { |t| t[:name] }
+
+    tags.each do |t|
+      assert_equal t[:name], t[:full_name]
+    end
+  end
+
+  def test_doesnt_crash_on_negative_numbers
+    tags = extract(<<-EOC)
+      MARSHAL_FIELDS = {
+        -1 => 16,
+         1 => 16,
+      }
+    EOC
+
+    assert_equal 1, tags.size
+  end
+
   def test_extract_namespaced_constant
     tags = extract(<<-EOC)
       A::B::C = 1

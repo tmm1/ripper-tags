@@ -103,6 +103,18 @@ class Parser < Ripper
     end
   end
 
+  def on_array(args)
+    if args.is_a?(Array) && args[0] == :args
+      args[1..-1]
+    end
+  end
+
+  def on_hash(args)
+    return unless args
+
+    args.select { |arg| arg.is_a?(Array) && arg[0] == :assoc }.map { |_assoc, k, _v| k }
+  end
+
   undef on_tstring_content
   def on_tstring_content(str)
     str
@@ -326,7 +338,10 @@ end
         sexp.each{ |child| process(child) }
       when Symbol
         name, *args = sexp
-        __send__("on_#{name}", *args) unless name.to_s.index("@") == 0
+        name = name.to_s
+        if name.index("@") != 0 && name.index("-@") != 0
+          __send__("on_#{name}", *args)
+        end
       when String, nil
         # nothing
       end
@@ -393,6 +408,8 @@ end
         name = parts.pop
         namespace = namespace + parts
       end
+
+      process(rhs)
 
       emit_tag :constant, line,
         :name => name,
