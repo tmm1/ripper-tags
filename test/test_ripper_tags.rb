@@ -106,6 +106,17 @@ class TagRipperTest < Test::Unit::TestCase
     end
   end
 
+  def test_doesnt_crash_on_negative_numbers
+    tags = extract(<<-EOC)
+      MARSHAL_FIELDS = {
+        -1 => 16,
+         1 => 16,
+      }
+    EOC
+
+    assert_equal 1, tags.size
+  end
+
   def test_extract_namespaced_constant
     tags = extract(<<-EOC)
       A::B::C = 1
