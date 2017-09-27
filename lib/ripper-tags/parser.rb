@@ -103,6 +103,18 @@ class Parser < Ripper
     end
   end
 
+  def on_array(args)
+    if args.is_a?(Array) && args[0] == :args
+      args[1..-1]
+    end
+  end
+
+  def on_hash(args)
+    return unless args
+
+    args.select { |arg| arg.is_a?(Array) && arg[0] == :assoc }.map { |_assoc, k, _v| k }
+  end
+
   undef on_tstring_content
   def on_tstring_content(str)
     str
@@ -248,7 +260,7 @@ class Parser < Ripper
     method_names = args.select { |arg| arg.first.is_a? String }
     options = args.select { |arg| arg.first.is_a?(Array) && arg.first.first == :assoc }.flatten(1)
     options = Hash[options.map { |_assoc, key, val| [key.first, val.first] }]
-                  
+
     target = options["to:"] || options["to"] # When using hashrocket syntax there is no ':'
     prefix = options["prefix:"] || options["prefix"]
     method_prefix = if prefix.is_a?(Array) && prefix.first == "true"
@@ -378,6 +390,8 @@ end
         name = parts.pop
         namespace = namespace + parts
       end
+
+      process(rhs)
 
       emit_tag :constant, line,
         :name => name,
