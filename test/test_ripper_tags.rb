@@ -1,9 +1,14 @@
 require 'test/unit'
 require 'ripper-tags/parser'
+require 'pp'
 
 class TagRipperTest < Test::Unit::TestCase
   def extract(code)
     RipperTags::Parser.extract(code)
+  rescue
+    puts
+    pp Ripper.sexp(code)
+    raise
   end
 
   def inspect(tag)
