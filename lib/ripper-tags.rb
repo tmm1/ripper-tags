@@ -32,6 +32,32 @@ module RipperTags
       :input_file => nil
   end
 
+  class ForgivingOptionParser < OptionParser
+    attr_accessor :ignore_unsupported_options
+
+    def parse(argv)
+      argv = argv.dup
+      exceptions = []
+      remaining = []
+
+      while argv.size > 0
+        begin
+          remaining = super(argv)
+          break
+        rescue OptionParser::InvalidOption => err
+          argv -= err.args
+          exceptions << err
+        end
+      end
+
+      if exceptions.any? && !ignore_unsupported_options
+        raise exceptions.first
+      end
+
+      remaining
+    end
+  end
+
   def self.option_parser(options)
     flags_string_to_set = lambda do |string, set|
       flags = string.split("")
@@ -44,7 +70,7 @@ module RipperTags
       flags.each { |f| set.send(operation, f) }
     end
 
-    OptionParser.new do |opts|
+    ForgivingOptionParser.new do |opts|
       opts.banner = "Usage: #{opts.program_name} [options] FILES..."
       opts.version = version
 
@@ -125,6 +151,9 @@ module RipperTags
           exit 1
         end
       end
+      opts.on_tail("--ignore-unsupported-options", "Don't fail when unsupported options given, just skip them") do
+        opts.ignore_unsupported_options = true
+      end
       opts.on_tail("-v", "--version", "Print version information") do
         puts opts.ver
         exit
@@ -137,14 +166,17 @@ module RipperTags
   def self.process_args(argv, run = method(:run))
     option_parser(default_options) do |optparse, options|
       file_list = optparse.parse(argv)
+
       if !file_list.empty?
         options.files = file_list
       elsif !(options.recursive || options.input_file)
         raise OptionParser::InvalidOption, "needs either a list of files, `-L`, or `-R' flag"
       end
+
       options.tag_file_name ||= options.format == 'emacs' ? './TAGS' : './tags'
       options.format ||= File.basename(options.tag_file_name) == 'TAGS' ? 'emacs' : 'vim'
       options.tag_relative = options.format == "emacs" if options.tag_relative.nil?
+
       return run.call(options)
     end
   end
