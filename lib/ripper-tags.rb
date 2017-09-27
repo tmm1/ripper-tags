@@ -29,8 +29,33 @@ module RipperTags
       :all_files => false,
       :fields => Set.new,
       :excmd => nil,
-      :input_file => nil,
-      :ignore_unsupported => false
+      :input_file => nil
+  end
+
+  class ForgivingOptionParser < OptionParser
+    attr_accessor :ignore_unsupported_options
+
+    def parse(argv)
+      argv = argv.dup
+      exceptions = []
+      remaining = []
+
+      while argv.size > 0
+        begin
+          remaining = super(argv)
+          break
+        rescue OptionParser::InvalidOption => err
+          argv -= err.args
+          exceptions << err
+        end
+      end
+
+      if exceptions.any? && !ignore_unsupported_options
+        raise exceptions.first
+      end
+
+      remaining
+    end
   end
 
   def self.option_parser(options)
@@ -45,7 +70,7 @@ module RipperTags
       flags.each { |f| set.send(operation, f) }
     end
 
-    OptionParser.new do |opts|
+    ForgivingOptionParser.new do |opts|
       opts.banner = "Usage: #{opts.program_name} [options] FILES..."
       opts.version = version
 
@@ -127,7 +152,7 @@ module RipperTags
         end
       end
       opts.on_tail("--ignore-unsupported-options", "Don't fail when unsupported options given, just skip them") do
-        options.ignore_unsupported = true
+        opts.ignore_unsupported_options = true
       end
       opts.on_tail("-v", "--version", "Print version information") do
         puts opts.ver
@@ -140,24 +165,7 @@ module RipperTags
 
   def self.process_args(argv, run = method(:run))
     option_parser(default_options) do |optparse, options|
-      invalid_options = []
-      file_list = []
-
-      while argv.size > 0
-        begin
-          file_list = optparse.parse(argv)
-          break
-        rescue OptionParser::InvalidOption => err
-          err.args.each do |bad_option|
-            argv.delete(bad_option)
-            invalid_options << bad_option
-          end
-        end
-      end
-      
-      if invalid_options.size > 0 && !options.ignore_unsupported
-        raise OptionParser::InvalidOption, invalid_options.first
-      end
+      file_list = optparse.parse(argv)
 
       if !file_list.empty?
         options.files = file_list
