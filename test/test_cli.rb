@@ -29,6 +29,17 @@ class CliTest < Test::Unit::TestCase
     assert_equal "invalid option: needs either a list of files, `-L`, or `-R' flag", err.message
   end
 
+  def test_invalid_options_ignored_plus_files
+    options = process_args(%w[--moo lib --ignore-unsupported-options --language=perl src])
+    assert_equal %w[lib src], options.files
+  end
+
+  def test_invalid_options_ignored_recursive_current_dir
+    options = process_args(%w[--moo --ignore-unsupported-options -O2 -R])
+    assert_equal true, options.recursive
+    assert_equal %w[.], options.files
+  end
+
   def test_recurse_defaults_to_current_dir
     options = process_args(%w[-R])
     assert_equal true, options.recursive
