@@ -444,6 +444,9 @@ class TagRipperTest < Test::Unit::TestCase
       class C
         delegate
         delegate [1, 2]
+        delegate %i[
+          text
+        ] => :symbol
       end
     EOC
 
