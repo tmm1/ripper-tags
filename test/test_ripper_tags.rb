@@ -502,6 +502,30 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal 'NavigationTest', tags[0][:name]
   end
 
+  def test_extract_from_erb_where_class_is_generated
+    # this is a test case for parsing https://github.com/plataformatec/devise/blob/master/lib/generators/active_record/templates/migration_existing.rb
+    tags = extract(<<-EOC)
+      class AddDeviseTo<%= table_name.camelize %> < ActiveRecord::Migration<%= migration_version %>
+        def self.up
+          change_table :<%= table_name %> do |t|
+      <%= migration_data -%>
+
+      <% attributes.each do |attribute| -%>
+            t.<%= attribute.type %> :<%= attribute.name %>
+      <% end -%>
+          end
+        end
+
+        # def self.down
+        #   raise ActiveRecord::IrreversibleMigration
+        # end
+      end
+    EOC
+
+    # this is impossible to parse
+    assert_equal 0, tags.size
+  end
+
   def test_extract_with_keyword_variables
     tags = extract(<<-EOC)
       class Foo
