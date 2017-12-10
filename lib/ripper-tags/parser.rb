@@ -76,7 +76,10 @@ class Parser < Ripper
          /^attr_(accessor|reader|writer)$/
       on_method_add_arg([:fcall, name], args[0])
     when "delegate"
-      on_delegate(*args[0][1..-1])
+      arg = *args[0]
+      if !arg.empty?
+        on_delegate(*args[0][1..-1])
+      end
     when "def_delegator", "def_instance_delegator"
       on_def_delegator(*args[0][1..-1])
     when "def_delegators", "def_instance_delegators"
