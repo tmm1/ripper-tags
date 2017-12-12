@@ -437,7 +437,7 @@ end
         :class => ns
     end
 
-    def on_defs(klass, name, line)
+    def on_defs(klass, name, line, *args)
       ns = (@namespace + [klass != 'self' ? klass : nil]).compact
       emit_tag 'singleton method', line,
         :name => name,
