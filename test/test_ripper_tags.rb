@@ -455,6 +455,7 @@ class TagRipperTest < Test::Unit::TestCase
         delegate %i[
           text
         ] => :symbol
+        delegate *args
       end
     EOC
     assert_equal 1, tags.count
