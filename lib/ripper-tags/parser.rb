@@ -78,7 +78,7 @@ class Parser < Ripper
     when "delegate"
       arg = *args[0]
       if !arg.empty?
-        on_delegate(arg[1..-1])
+        on_delegate(*args[0][1..-1])
       end
     when "def_delegator", "def_instance_delegator"
       on_def_delegator(*args[0][1..-1])
