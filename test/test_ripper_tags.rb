@@ -421,10 +421,6 @@ class TagRipperTest < Test::Unit::TestCase
         delegate :count, to: :@items, prefix: :itm
         delegate :headers, to: "@_response"
 
-        options = [:one, :two]
-        options << { to: :thingy }
-        delegate *options
-
         def thingy
           Object.new
         end
@@ -459,6 +455,7 @@ class TagRipperTest < Test::Unit::TestCase
         delegate %i[
           text
         ] => :symbol
+        delegate *args
       end
     EOC
     assert_equal 1, tags.count
