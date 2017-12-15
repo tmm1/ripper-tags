@@ -645,4 +645,15 @@ class TagRipperTest < Test::Unit::TestCase
 
     assert_equal 0, tags.size
   end
+
+  def test_hashes_within_array
+    tags = extract(<<-EOC)
+      module M
+        C = [ { a: 1 }, b: 2 ]
+      end
+    EOC
+
+    assert_equal 2, tags.size
+    assert_equal 'C', tags[1][:name]
+  end
 end
