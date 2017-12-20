@@ -40,6 +40,23 @@ class CliTest < Test::Unit::TestCase
     assert_equal %w[.], options.files
   end
 
+  def test_options_file_without_required
+    option_file_path = File.expand_path('../fixtures/extra-options.txt', __FILE__)
+    err = assert_raise(OptionParser::InvalidOption) do
+      RipperTags.process_args(['--options', option_file_path])
+    end
+    assert_equal "invalid option: needs either a list of files, `-L`, or `-R' flag", err.message
+  end
+
+  def test_options_file
+    option_file_path = File.expand_path('../fixtures/extra-options.txt', __FILE__)
+    options = process_args(['--options', option_file_path, '-R'])
+    assert_equal true, options.recursive
+    assert_equal %w[.], options.files
+    assert_equal %w[.git vendor bundle/*], options.exclude
+    assert_equal 'emacs', options.format
+  end
+
   def test_recurse_defaults_to_current_dir
     options = process_args(%w[-R])
     assert_equal true, options.recursive

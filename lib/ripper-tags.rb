@@ -154,6 +154,9 @@ module RipperTags
       opts.on_tail("--ignore-unsupported-options", "Don't fail when unsupported options given, just skip them") do
         opts.ignore_unsupported_options = true
       end
+      opts.on_tail("--options=FILE", "Read options from FILE") do |file|
+        throw :reload_options, file
+      end
       opts.on_tail("-v", "--version", "Print version information") do
         puts opts.ver
         exit
@@ -164,6 +167,18 @@ module RipperTags
   end
 
   def self.process_args(argv, run = method(:run))
+    1.times do # because `redo` works on yielded blocks only
+      optsfile = catch(:reload_options) { return process_and_run(argv, run) }
+
+      option_rows = File.read(optsfile).split
+      argv.push(*option_rows)
+      argv.slice!(argv.index(optsfile) - 1, 2)
+
+      redo
+    end
+  end
+
+  def self.process_and_run(argv, run)
     option_parser(default_options) do |optparse, options|
       file_list = optparse.parse(argv)
 
