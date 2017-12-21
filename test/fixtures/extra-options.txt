@@ -1,3 +1,3 @@
---exclude vendor
---exclude=bundle/*
+--exclude 	  path with spaces
+--exclude=bundle/with spaces/*
 -e
