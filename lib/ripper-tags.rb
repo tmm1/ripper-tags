@@ -35,17 +35,16 @@ module RipperTags
   class ForgivingOptionParser < OptionParser
     attr_accessor :ignore_unsupported_options
 
-    def parse(argv)
-      argv = argv.dup
+    def parse!(argv)
       exceptions = []
-      remaining = []
 
       while argv.size > 0
+        argv_orig = argv.dup
         begin
-          remaining = super(argv)
+          super(argv)
           break
         rescue OptionParser::InvalidOption => err
-          argv -= err.args
+          argv.replace(argv_orig - err.args)
           exceptions << err
         end
       end
@@ -54,7 +53,7 @@ module RipperTags
         raise exceptions.first
       end
 
-      remaining
+      argv
     end
   end
 
