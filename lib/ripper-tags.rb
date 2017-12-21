@@ -36,8 +36,8 @@ module RipperTags
     attr_accessor :ignore_unsupported_options
 
     def load_options_file(file)
-      @argv.unshift(*File.read(file).split(/\r?\n/).flat_map { |line|
-        line.match(/(=|\s)/)
+      @argv.unshift(*File.readlines(file).flat_map { |line|
+        line.strip!.match(/(=|\s)/)
         ($1 == "" || $1 == "=") ? line : line.split(/\s+/, 2)
       })
     end
