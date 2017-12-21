@@ -42,17 +42,17 @@ module RipperTags
       })
     end
 
-    def parse!(argv, *)
+    private
+
+    def parse_in_order(argv = default_argv, *)
       exceptions = []
       @argv = argv
 
-      while argv.size > 0
-        argv_orig = argv.dup
+      loop do
         begin
-          super(argv)
+          super
           break
         rescue OptionParser::InvalidOption => err
-          argv.replace(argv_orig - err.args)
           exceptions << err
         end
       end
