@@ -42,7 +42,7 @@ module RipperTags
       })
     end
 
-    def parse!(argv)
+    def parse!(argv, *)
       exceptions = []
       @argv = argv
 
