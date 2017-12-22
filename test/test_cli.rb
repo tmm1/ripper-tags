@@ -40,6 +40,30 @@ class CliTest < Test::Unit::TestCase
     assert_equal %w[.], options.files
   end
 
+  def test_options_file
+    option_file_path = File.expand_path('../fixtures/extra-options.txt', __FILE__)
+    option_file_path2 = File.expand_path('../fixtures/extra-options2.txt', __FILE__)
+    options = process_args([
+      '--exclude=1',
+      '--options', option_file_path,
+      '-R',
+      '--exclude=2',
+      "--options=#{option_file_path2}",
+      '--exclude=3',
+    ])
+    assert_equal true, options.recursive
+    assert_equal %w[.], options.files
+    assert_equal %w[.git 1 path\ with\ spaces bundle/with\ spaces/* 2 bundle 3], options.exclude
+    assert_equal 'emacs', options.format
+  end
+
+  def test_options_file_with_unsupported
+    option_file_path = File.expand_path('../fixtures/unsupported-options.txt', __FILE__)
+    options = process_args(['lib', '--options', option_file_path, '--ignore-unsupported-options', 'src'])
+    assert_equal false, options.recursive
+    assert_equal %w[lib src], options.files
+  end
+
   def test_recurse_defaults_to_current_dir
     options = process_args(%w[-R])
     assert_equal true, options.recursive

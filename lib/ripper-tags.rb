@@ -35,17 +35,24 @@ module RipperTags
   class ForgivingOptionParser < OptionParser
     attr_accessor :ignore_unsupported_options
 
-    def parse(argv)
-      argv = argv.dup
-      exceptions = []
-      remaining = []
+    def load_options_file(file)
+      @argv.unshift(*File.readlines(file).flat_map { |line|
+        line.strip!.match(/(=|\s)/)
+        ($1 == "" || $1 == "=") ? line : line.split(/\s+/, 2)
+      })
+    end
 
-      while argv.size > 0
+    private
+
+    def parse_in_order(argv = default_argv, *)
+      exceptions = []
+      @argv = argv
+
+      loop do
         begin
-          remaining = super(argv)
+          super
           break
         rescue OptionParser::InvalidOption => err
-          argv -= err.args
           exceptions << err
         end
       end
@@ -54,7 +61,7 @@ module RipperTags
         raise exceptions.first
       end
 
-      remaining
+      argv
     end
   end
 
@@ -150,6 +157,9 @@ module RipperTags
           $stderr.puts "Error: language %p is not supported" % lang
           exit 1
         end
+      end
+      opts.on_tail("--options=FILE", "Read additional options from file") do |file|
+        opts.load_options_file(file)
       end
       opts.on_tail("--ignore-unsupported-options", "Don't fail when unsupported options given, just skip them") do
         opts.ignore_unsupported_options = true
