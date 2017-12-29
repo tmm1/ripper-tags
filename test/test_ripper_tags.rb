@@ -358,6 +358,42 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal '4: method M#b=', inspect(tags[8])
   end
 
+  def test_extract_mattr_accessor
+    tags = extract(<<-EOC)
+      module M
+        mattr_accessor :a, "b"
+        mattr_reader(:a, :b)
+        mattr_writer(:a, :b)
+      end
+    EOC
+    assert_equal '2: method M#a',  inspect(tags[1])
+    assert_equal '2: method M#a=', inspect(tags[2])
+    assert_equal '2: method M#b',  inspect(tags[3])
+    assert_equal '2: method M#b=', inspect(tags[4])
+    assert_equal '3: method M#a',  inspect(tags[5])
+    assert_equal '3: method M#b',  inspect(tags[6])
+    assert_equal '4: method M#a=', inspect(tags[7])
+    assert_equal '4: method M#b=', inspect(tags[8])
+  end
+
+  def test_extract_cattr_accessor
+    tags = extract(<<-EOC)
+      module M
+        cattr_accessor :a, "b"
+        cattr_reader(:a, :b)
+        cattr_writer(:a, :b)
+      end
+    EOC
+    assert_equal '2: method M#a',  inspect(tags[1])
+    assert_equal '2: method M#a=', inspect(tags[2])
+    assert_equal '2: method M#b',  inspect(tags[3])
+    assert_equal '2: method M#b=', inspect(tags[4])
+    assert_equal '3: method M#a',  inspect(tags[5])
+    assert_equal '3: method M#b',  inspect(tags[6])
+    assert_equal '4: method M#a=', inspect(tags[7])
+    assert_equal '4: method M#b=', inspect(tags[8])
+  end
+
   def test_extract_rails_associations
     tags = extract(<<-EOC)
       class C

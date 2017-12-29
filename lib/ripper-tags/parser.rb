@@ -73,7 +73,7 @@ class Parser < Ripper
          "scope", "named_scope",
          "public_class_method", "private_class_method",
          "public", "protected", "private",
-         /^attr_(accessor|reader|writer)$/
+         /^[mc]?attr_(accessor|reader|writer)$/
       on_method_add_arg([:fcall, name], args[0])
     when "delegate"
       on_delegate(*Array(args[0])[1..-1])
@@ -185,7 +185,7 @@ class Parser < Ripper
         [:def_with_access, klass, method_name, access, line]
       when "scope", "named_scope"
         [:rails_def, :scope, args[1][0], line]
-      when /^attr_(accessor|reader|writer)$/
+      when /^[mc]?attr_(accessor|reader|writer)$/
         gen_reader = $1 != 'writer'
         gen_writer = $1 != 'reader'
         args[1..-1].inject([]) do |gen, arg|
