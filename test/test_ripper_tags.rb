@@ -204,6 +204,37 @@ class TagRipperTest < Test::Unit::TestCase
     end
   end
 
+  def test_extract_one_line_definition_access_by_symbol
+    %w(private public protected).each do |visibility|
+      tags = extract(<<-EOC)
+        class Test
+          def foo() end
+          #{visibility} :foo
+        end
+      EOC
+
+      assert_equal 2, tags.size
+      tag = tags.find { |t| t[:name] == "foo" }
+      assert_equal visibility, tag[:access]
+      assert_equal 2, tag[:line]
+    end
+
+    %w(private_class_method public_class_method protected_class_method).each do |visibility|
+      tags = extract(<<-EOC)
+        class Test
+          def self.bar() end
+          #{visibility} :bar
+        end
+      EOC
+
+      assert_equal 2, tags.size
+      tag = tags.find { |t| t[:name] == "bar" }
+      scope = visibility.sub("_class_method", "")
+      assert_equal scope, tag[:access]
+      assert_equal 2, tag[:line]
+    end
+  end
+
   def test_extract_module_eval
     tags = extract(<<-EOC)
       M.module_eval do

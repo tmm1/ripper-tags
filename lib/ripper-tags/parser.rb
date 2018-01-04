@@ -71,7 +71,7 @@ class Parser < Ripper
          "has_one", "has_many",
          "belongs_to", "has_and_belongs_to_many",
          "scope", "named_scope",
-         "public_class_method", "private_class_method",
+         "public_class_method", "private_class_method", "protected_class_method",
          "public", "protected", "private",
          /^[mc]?attr_(accessor|reader|writer)$/
       on_method_add_arg([:fcall, name], args[0])
@@ -171,18 +171,22 @@ class Parser < Ripper
         [:alias, args[1][0], args[2][0], line] if args[1] && args[2]
       when "define_method"
         [:def, args[1][0], line]
-      when "public_class_method", "private_class_method", "private", "public", "protected"
+      when "public_class_method", "private_class_method", "protected_class_method", "private", "public", "protected"
         access = name.sub("_class_method", "")
+        klass = name == access ? nil : 'self'
+        procedure = :def_with_access
 
-        if args[1][1] == 'self'
-          klass = 'self'
+        if args[1][0].is_a?(String)
+          procedure = :redefine_access
+          method_name = args[1][0]
+        elsif args[1][1] == 'self'
           method_name = args[1][2]
         else
           klass = nil
           method_name = args[1][1]
         end
 
-        [:def_with_access, klass, method_name, access, line]
+        [procedure, klass, method_name, access, line]
       when "scope", "named_scope"
         [:rails_def, :scope, args[1][0], line]
       when /^[mc]?attr_(accessor|reader|writer)$/
@@ -455,6 +459,14 @@ end
         :full_name => "#{ns}#{singleton ? '.' : '#'}#{name}",
         :class => ns,
         :access => access
+    end
+
+    def on_redefine_access(klass, name, access, line)
+      ns = (@namespace.empty? ? 'Object' : @namespace.join('::'))
+      singleton = @is_singleton || klass == 'self'
+      full_name = "#{ns}#{singleton ? '.' : '#'}#{name}"
+      tag = @tags.select { |t| t[:full_name] == full_name }.last
+      tag[:access] = access if tag
     end
 
     def on_rails_def(kind, name, line)
