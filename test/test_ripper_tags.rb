@@ -87,18 +87,26 @@ class TagRipperTest < Test::Unit::TestCase
         OPEN = 'open',
       ]
 
+      FROZEN_ARRAY = [ARRAY_ENTRY = 1].freeze
+
       DISPLAY_MAPPING = {
         CANCELLED = 'cancelled' => 'Cancelled by user',
         STARTED = 'started' => 'Started by user',
       }
+
+      FROZEN_HASH = { HASH_ENTRY = 2 => 3 }.freeze
     EOC
 
     assert_equal %w[
       OPEN
       STATUSES
+      ARRAY_ENTRY
+      FROZEN_ARRAY
       CANCELLED
       STARTED
       DISPLAY_MAPPING
+      HASH_ENTRY
+      FROZEN_HASH
     ], tags.map { |t| t[:name] }
 
     tags.each do |t|

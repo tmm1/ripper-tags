@@ -498,12 +498,17 @@ end
     end
 
     def on_call(*args)
+      process args
     end
-    alias on_aref_field on_call
-    alias on_field on_call
-    alias on_fcall on_call
-    alias on_args on_call
-    alias on_assoc on_call
-    alias on_! on_call
+
+    def ignore(*args)
+    end
+
+    alias on_aref_field ignore
+    alias on_field ignore
+    alias on_fcall ignore
+    alias on_args ignore
+    alias on_assoc ignore
+    alias on_! ignore
   end
 end
