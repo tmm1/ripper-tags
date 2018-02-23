@@ -553,6 +553,19 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal '2: method F#bar', inspect(tags[2])
   end
 
+  def test_doesnt_crash_on_def_delegator
+    tags = extract(<<-EOC)
+      class F
+        foo = :foo
+        bar = :bar
+        def_delegator foo
+        def_delegators foo, bar
+      end
+    EOC
+
+    assert_equal 1, tags.count
+  end
+
   def test_extract_from_erb
     tags = extract(<<-EOC)
       class NavigationTest < ActionDispatch::IntegrationTest

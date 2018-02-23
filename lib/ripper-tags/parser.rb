@@ -297,13 +297,13 @@ class Parser < Ripper
 
   def on_def_delegator(*args)
     name, lineno = args.last
-    [:def, name, lineno]
+    [:def, name, lineno] if lineno
   end
 
   def on_def_delegators(*args)
     _target, *names = args
     names.map do |name, lineno|
-      [:def, name, lineno]
+      [:def, name, lineno] if lineno
     end
   end
 end
