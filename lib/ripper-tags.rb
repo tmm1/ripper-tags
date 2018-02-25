@@ -109,6 +109,9 @@ module RipperTags
       opts.on("-n", "Equivalent to --excmd=number.") do
         options.excmd = "number"
       end
+      opts.on("--fields=+l", "Include language information in the tag") do |flags|
+        flags_string_to_set.call(flags, options.fields)
+      end
       opts.on("--fields=+n", "Include line number information in the tag") do |flags|
         flags_string_to_set.call(flags, options.fields)
       end

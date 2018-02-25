@@ -63,6 +63,15 @@ class FormattersTest < Test::Unit::TestCase
     ))
   end
 
+  def test_vim_with_language_field
+    vim = formatter_for(:format => 'vim', :fields => %w(l).to_set)
+    assert_equal %{M\t./script.rb\t/^module M$/;"\tm\tclass:A.B\tlanguage:Ruby}, vim.format(build_tag(
+      :kind => 'module', :name => 'M',
+      :pattern => "module M",
+      :class => 'A::B'
+    ))
+  end
+
   def test_vim_with_line_numbers
     vim = formatter_for(:format => 'vim', :fields => %w(n).to_set)
     assert_equal %{C\t./script.rb\t/^class C < D$/;"\tc\tline:1}, vim.format(build_tag(
