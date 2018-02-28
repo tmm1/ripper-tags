@@ -3,7 +3,7 @@ require 'ripper-tags/default_formatter'
 module RipperTags
   class VimFormatter < DefaultFormatter
     def supported_flags() ['q'] end
-    def supported_fields() ['n', 'l'] end
+    def supported_fields() ['l', 'n'] end
 
     def include_qualified_names?
       return @include_qualified_names if defined? @include_qualified_names
