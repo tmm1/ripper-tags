@@ -109,7 +109,7 @@ module RipperTags
       opts.on("-n", "Equivalent to --excmd=number.") do
         options.excmd = "number"
       end
-      opts.on("--fields=+n", "Include line number information in the tag") do |flags|
+      opts.on("--fields=+ln", "Add extra fields to output") do |flags|
         flags_string_to_set.call(flags, options.fields)
       end
       opts.on("--all-files", "Parse all files in recursive mode (default: parse `*.rb' files)") do
