@@ -49,10 +49,14 @@ module RipperTags
           raise BrokenPipe
         end
       else
-        File.open(options.tag_file_name, 'w+') do |outfile|
+        prepare_output(options.tag_file_name) do |outfile|
           yield outfile
         end
       end
+    end
+
+    def prepare_output(filename, &block)
+      File.open(options.tag_file_name, 'w+', &block)
     end
 
     def tag_file_dir

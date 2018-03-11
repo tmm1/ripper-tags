@@ -21,12 +21,20 @@ module RipperTags
     def with_output
       super do |out|
         out.puts header
-        @queued_write = []
+        @queued_write ||= []
         yield out
-        @queued_write.sort.each do |line|
+        @queued_write.sort.uniq.each do |line|
           out.puts(line)
         end
       end
+    end
+
+    def prepare_output(filename, &block)
+      if options.append && File.readable?(filename)
+        # Read existing definitions into memory first
+        @queued_write = VimTagsProcessor.new(filename).read
+      end
+      super
     end
 
     def write(tag, out)
@@ -98,6 +106,14 @@ module RipperTags
         display_language,
         display_inheritance(tag),
       ]
+    end
+  end
+
+  VimTagsProcessor = Struct.new(:filename) do
+    def read
+      File.readlines(filename)
+        .reject { |row| /!_TAG_/ =~ row } # Skip header
+        .map(&:chomp)
     end
   end
 end

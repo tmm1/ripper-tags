@@ -29,7 +29,8 @@ module RipperTags
       :all_files => false,
       :fields => Set.new,
       :excmd => nil,
-      :input_file => nil
+      :input_file => nil,
+      :append => false
   end
 
   class ForgivingOptionParser < OptionParser
@@ -86,6 +87,9 @@ module RipperTags
       opts.on("-f", "--tag-file (FILE|-)", "File to write tags to (default: `./tags')",
              '"-" outputs to standard output') do |fname|
         options.tag_file_name = fname
+      end
+      opts.on("-a", "--append[=yes|no]", "Append to existing tagfile") do |value|
+        options.append = value != "no"
       end
       opts.on("--tag-relative[=OPTIONAL]", "Make file paths relative to the directory of the tag file") do |value|
         options.tag_relative = value != "no"
@@ -186,6 +190,10 @@ module RipperTags
       options.tag_file_name ||= options.format == 'emacs' ? './TAGS' : './tags'
       options.format ||= File.basename(options.tag_file_name) == 'TAGS' ? 'emacs' : 'vim'
       options.tag_relative = options.format == "emacs" if options.tag_relative.nil?
+
+      if options.append && !(%w(emacs vim).include? options.format)
+        raise OptionParser::InvalidOption, "--append is supported only for Emacs and Vim formats"
+      end
 
       return run.call(options)
     end

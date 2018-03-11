@@ -129,6 +129,32 @@ C\t./script.rb\t/^class C < D$/;"\tc\tclass:A.B\tinherits:D
 TAGS
   end
 
+  def test_vim_append
+    Tempfile.open("tags") do |tmp|
+      tmp.write(<<-TAGS)
+!_TAG_FILE_FORMAT\t2\t/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED\t1\t/0=unsorted, 1=sorted, 2=foldcase/
+X\t./xmarksthespot.rb\t/^X = 42$/;"\tC
+TAGS
+      tmp.rewind
+      vim = formatter_for(:format => 'vim', :extra_flags => %w[q].to_set, :tag_file_name => tmp.path, :append => true)
+      vim.with_output do |out|
+        vim.write build_tag(
+          :kind => 'class', :name => 'C', full_name: 'A::B::C',
+          :pattern => "class C < D",
+          :class => 'A::B', :inherits => 'D'), out
+      end
+      tmp.rewind
+      assert_equal <<-TAGS, tmp.read
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+A::B::C	./script.rb	/^class C < D$/;"	c	inherits:D
+C	./script.rb	/^class C < D$/;"	c	class:A.B	inherits:D
+X	./xmarksthespot.rb	/^X = 42$/;"	C
+TAGS
+    end
+  end
+
   def test_emacs
     emacs = formatter_for(:format => 'emacs')
     assert_equal %{  class C < D\x7FC\x015,0}, emacs.format(build_tag(

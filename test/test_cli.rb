@@ -157,6 +157,26 @@ class CliTest < Test::Unit::TestCase
     assert_equal test_input_path, options.input_file
   end
 
+  def test_append_flag
+    options = process_args(%w[--append --format=vim -R])
+    assert_equal true, options.append
+
+    options = process_args(%w[--append --format=emacs -R])
+    assert_equal true, options.append
+  end
+
+  def test_append_default_json_fails
+    err = assert_raise(OptionParser::InvalidOption) do 
+      RipperTags.process_args(%w[--append --format=default -R])
+    end
+    assert_equal "invalid option: --append is supported only for Emacs and Vim formats", err.message
+
+    err = assert_raise(OptionParser::InvalidOption) do 
+      RipperTags.process_args(%w[--append --format=json -R])
+    end
+    assert_equal "invalid option: --append is supported only for Emacs and Vim formats", err.message
+  end
+
   def capture_stderr
     old_stderr = $stderr
     $stderr = StringIO.new
