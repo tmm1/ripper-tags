@@ -38,6 +38,7 @@ class DataReaderTest < Test::Unit::TestCase
   def test_file_finder
     files = in_fixtures { find_files('.', :exclude => %w[_git]) }
     expected = %w[
+      bad_code.rb
       encoding.rb
       very/deep/script.rb
       very/inter.rb
@@ -52,13 +53,14 @@ class DataReaderTest < Test::Unit::TestCase
 
   def test_file_finder_exclude
     files = in_fixtures { find_files('.', :exclude => %w[_git very]) }
-    expected = %w[ encoding.rb ]
+    expected = %w[ bad_code.rb encoding.rb ]
     assert_equal expected, files.sort
   end
 
   def test_file_finder_exclude_glob
     files = in_fixtures { find_files('.', :exclude => %w[_git very/deep/*]) }
     expected = %w[
+      bad_code.rb
       encoding.rb
       very/inter.rb
     ]
@@ -137,6 +139,31 @@ class DataReaderTest < Test::Unit::TestCase
     end
   end
 
+  def test_errors
+    # should raise if we hit an error right away
+    options = OpenStruct.new(:files => [fixture('bad_code.rb')])
+    reader = RipperTags::DataReader.new(options)
+    assert_raise(ArgumentError) do
+      capture_stderr do
+        reader.each_tag.to_a
+      end
+    end
+
+    # same as above, but should NOT raise if --force
+    options = OpenStruct.new(:files => [fixture('bad_code.rb')], force: true)
+    reader = RipperTags::DataReader.new(options)
+    capture_stderr do
+      reader.each_tag.to_a
+    end
+
+    # should NOT raise if we hit an error after processing a file
+    options = OpenStruct.new(:files => [fixture('encoding.rb'), fixture('bad_code.rb')])
+    reader = RipperTags::DataReader.new(options)
+    capture_stderr do
+      reader.each_tag.to_a
+    end
+  end
+
   def with_tempfile
     file = Tempfile.new("test-ripper-tags")
     begin
@@ -154,6 +181,16 @@ class DataReaderTest < Test::Unit::TestCase
       yield
     ensure
       $-w = old_verbose
+    end
+  end
+
+  def capture_stderr
+    old_stderr = $stderr
+    $stderr = StringIO.new
+    begin
+      yield
+    ensure
+      $stderr = old_stderr
     end
   end
 end

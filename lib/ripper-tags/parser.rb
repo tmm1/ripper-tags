@@ -309,6 +309,15 @@ class Parser < Ripper
 end
 
   class Visitor
+    class Error < RuntimeError
+      attr_reader :error, :sexp
+
+      def initialize(error, sexp)
+        @error = error
+        @sexp = sexp
+      end
+    end
+
     attr_reader :tags
 
     def initialize(sexp, path, data)
@@ -319,7 +328,11 @@ end
       @is_singleton = false
       @current_access = nil
 
-      process(sexp)
+      begin
+        process(sexp)
+      rescue => err
+        raise Error.new(err, @sexp)
+      end
     end
 
     def emit_tag(kind, line, opts={})
@@ -341,6 +354,7 @@ end
       when Array
         sexp.each{ |child| process(child) }
       when Symbol
+        @sexp = sexp
         name, *args = sexp
         name = name.to_s
         if name.index("@") != 0 && name.index("-@") != 0

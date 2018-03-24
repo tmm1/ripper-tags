@@ -210,6 +210,10 @@ module RipperTags
         formatter.write(tag, out)
       end
     end
+    # exit 2 if we encountered errors
+    if !options.force && reader.error_count > 0
+      exit 2
+    end
   rescue FatalError => err
     $stderr.puts "%s: %s" % [
       File.basename($0),
