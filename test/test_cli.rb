@@ -157,6 +157,20 @@ class CliTest < Test::Unit::TestCase
     assert_equal test_input_path, options.input_file
   end
 
+  def test_append_flag
+    options = process_args(%w[--format=vim -R])
+    assert_equal false, options.tag_file_append
+
+    options = process_args(%w[-a --format=vim -R])
+    assert_equal true, options.tag_file_append
+
+    options = process_args(%w[--append=no --format=vim -R])
+    assert_equal false, options.tag_file_append
+
+    options = process_args(%w[--append --format=emacs -R])
+    assert_equal true, options.tag_file_append
+  end
+
   def capture_stderr
     old_stderr = $stderr
     $stderr = StringIO.new

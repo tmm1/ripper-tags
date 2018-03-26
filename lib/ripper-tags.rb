@@ -18,6 +18,7 @@ module RipperTags
       :format => nil,
       :extra_flags => Set.new,
       :tag_file_name => nil,
+      :tag_file_append => false,
       :tag_relative => nil,
       :debug => false,
       :verbose_debug => false,
@@ -86,6 +87,9 @@ module RipperTags
       opts.on("-f", "--tag-file (FILE|-)", "File to write tags to (default: `./tags')",
              '"-" outputs to standard output') do |fname|
         options.tag_file_name = fname
+      end
+      opts.on("-a", "--append[=yes|no]", "Append tags to existing file") do |value|
+        options.tag_file_append = value != "no"
       end
       opts.on("--tag-relative[=OPTIONAL]", "Make file paths relative to the directory of the tag file") do |value|
         options.tag_relative = value != "no"
