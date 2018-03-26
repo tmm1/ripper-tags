@@ -191,8 +191,13 @@ module RipperTags
       options.format ||= File.basename(options.tag_file_name) == 'TAGS' ? 'emacs' : 'vim'
       options.tag_relative = options.format == "emacs" if options.tag_relative.nil?
 
-      if options.append && !(%w(emacs vim).include? options.format)
-        raise OptionParser::InvalidOption, "--append is supported only for Emacs and Vim formats"
+      if options.append
+        unless %w(emacs vim).include? options.format
+          raise OptionParser::InvalidOption, "--append is supported only for Emacs and Vim formats"
+        end
+        if options.tag_file_name == "-"
+          raise OptionParser::InvalidOption, "--append is not supported with stdin/stdout"
+        end
       end
 
       return run.call(options)

@@ -94,11 +94,11 @@ module RipperTags
       ]
     end
 
-    def save_rest
+    def save_rest(&block)
       @original.save_rest(&block) if @original
     end
 
-    def save_section(filename)
+    def save_section(filename, &block)
       @original.save_section(filename, &block) if @original
     end
 

@@ -177,6 +177,13 @@ class CliTest < Test::Unit::TestCase
     assert_equal "invalid option: --append is supported only for Emacs and Vim formats", err.message
   end
 
+  def test_append_stdout
+    err = assert_raise(OptionParser::InvalidOption) do
+      RipperTags.process_args(%w[-a -f - -R .])
+    end
+    assert_equal "invalid option: --append is not supported with stdin/stdout", err.message
+  end
+
   def capture_stderr
     old_stderr = $stderr
     $stderr = StringIO.new
