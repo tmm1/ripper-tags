@@ -77,10 +77,14 @@ end
 
 module EmacsUtils
   def fixture_tags
-    [{ line: "4", name: "X", path: "x.rb", pattern: "class X", class: "" },
-     { line: "5", name: "foo", path: "x.rb", pattern: "    def foo", class: "" },
-     { line: "12", name: "SomeComponent", path: "y.js", pattern: "class SomeComponent extends React.Component {", class: "" },
-     { line: "14", name: "componentWillMount", path: "y.js", pattern: "  componentWillMount() {", class: "" }]
+    { "x.rb" => [
+      { line: "4", name: "X", path: "x.rb", pattern: "class X", class: "" },
+      { line: "5", name: "foo", path: "x.rb", pattern: "    def foo", class: "" }
+    ],
+    "y.js" => [
+      { line: "12", name: "SomeComponent", path: "y.js", pattern: "class SomeComponent extends React.Component {", class: "" },
+      { line: "14", name: "componentWillMount", path: "y.js", pattern: "  componentWillMount() {", class: "" }
+    ]}
   end
 
   def fixture_lines
@@ -177,7 +181,7 @@ class EmacsTagsProcessorTest < Test::Unit::TestCase
 
   def processor(options = {})
     ::RipperTags::EmacsTagsProcessor.new(options[:path]).tap do |obj|
-      obj.instance_variable_set :@tags, options.fetch(:tags, [])
+      obj.instance_variable_set :@tags, options.fetch(:tags, {})
     end
   end
 
@@ -219,5 +223,4 @@ class EmacsTagsProcessorTest < Test::Unit::TestCase
     subject.save_rest { |filename| out.push(filename) }
     assert_equal(%w(y.js), out)
   end
-
 end

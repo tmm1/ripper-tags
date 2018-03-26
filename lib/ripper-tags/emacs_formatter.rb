@@ -110,7 +110,7 @@ module RipperTags
   class EmacsTagsProcessor
     def initialize(source)
       @source = source
-      @tags = []
+      @tags = {}
     end
     
     TAG_PATTERN = /^(.*)\x7F(.*)\x01(\d+),\d+/
@@ -131,30 +131,30 @@ module RipperTags
     end
 
     def store_tag(line, name, pattern, filename)
-      @tags.push({:line => line,
-                  :name => name,
-                  :path => filename,
-                  :pattern => pattern,
-                  :class => ""}) # Can't reconstruct class
+      @tags[filename] ||= []
+      @tags[filename].push({:line => line,
+                            :name => name,
+                            :path => filename,
+                            :pattern => pattern,
+                            :class => ""}) # Can't reconstruct class
     end
 
     def remove(tag)
-      @tags.reject! do |old|
-        old[:name] == tag[:name] && old[:path] == tag[:path]
-      end
+      path = tag[:path]
+      return unless @tags[path]
+      @tags[path].reject! { |old| old[:name] == tag[:name] }
     end
 
     def save_section(path)
-      @tags.select { |tag| tag[:path] == path }
-           .each { |tag| yield tag }
-      @tags.reject! { |tag| tag[:path] == path }
+      return unless @tags[path]
+      @tags[path].each { |tag| yield tag }
+      @tags.delete path
     end
 
     def save_rest
-      @tags.group_by { |tag| tag[:path] }
-        .each do |filename, tags|
-          yield filename unless tags.count.zero?
-        end
+      @tags.each do |path, tags|
+        yield path unless tags.count.zero?
+      end
     end
   end
 end
