@@ -140,6 +140,9 @@ class DataReaderTest < Test::Unit::TestCase
   end
 
   def test_raise_on_first
+    # erb_template only dies on Ruby >= 2.3
+    return if RUBY_VERSION.to_f < 2.3
+
     # should raise if we hit an error right away
     options = OpenStruct.new(:files => [fixture('erb_template.rb')])
     reader = RipperTags::DataReader.new(options)
@@ -151,6 +154,9 @@ class DataReaderTest < Test::Unit::TestCase
   end
 
   def test_no_raise_on_force
+    # erb_template only dies on Ruby >= 2.3
+    return if RUBY_VERSION.to_f < 2.3
+
     # same as above, but should NOT raise if --force
     options = OpenStruct.new(:files => [fixture('erb_template.rb')], force: true)
     reader = RipperTags::DataReader.new(options)
@@ -160,6 +166,9 @@ class DataReaderTest < Test::Unit::TestCase
   end
 
   def test_no_raise_on_second
+    # erb_template only dies on Ruby >= 2.3
+    return if RUBY_VERSION.to_f < 2.3
+
     # should NOT raise if we hit an error after processing a file
     options = OpenStruct.new(:files => [fixture('encoding.rb'), fixture('erb_template.rb')])
     reader = RipperTags::DataReader.new(options)
