@@ -140,14 +140,6 @@ module RipperTags
         rescue => err
           # print the error
           $stderr.puts "Error parsing `#{file}': #{err.message}"
-
-          # print sexp and unwrap the RuntimeError
-          if err.is_a?(Visitor::Error)
-            sexp = err.sexp.map { |i| i.is_a?(Array) ? "[...]" : i }
-            $stderr.puts "Error at sexp #{sexp}"
-            err = err.error
-          end
-
           @error_count += 1
 
           # Die if we ran without --force and we haven't seen any tags yet.

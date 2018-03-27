@@ -38,8 +38,8 @@ class DataReaderTest < Test::Unit::TestCase
   def test_file_finder
     files = in_fixtures { find_files('.', :exclude => %w[_git]) }
     expected = %w[
-      bad_code.rb
       encoding.rb
+      erb_template.rb
       very/deep/script.rb
       very/inter.rb
     ]
@@ -53,15 +53,15 @@ class DataReaderTest < Test::Unit::TestCase
 
   def test_file_finder_exclude
     files = in_fixtures { find_files('.', :exclude => %w[_git very]) }
-    expected = %w[ bad_code.rb encoding.rb ]
+    expected = %w[ encoding.rb erb_template.rb ]
     assert_equal expected, files.sort
   end
 
   def test_file_finder_exclude_glob
     files = in_fixtures { find_files('.', :exclude => %w[_git very/deep/*]) }
     expected = %w[
-      bad_code.rb
       encoding.rb
+      erb_template.rb
       very/inter.rb
     ]
     assert_equal expected, files.sort
@@ -139,25 +139,29 @@ class DataReaderTest < Test::Unit::TestCase
     end
   end
 
-  def test_errors
+  def test_raise_on_first
     # should raise if we hit an error right away
-    options = OpenStruct.new(:files => [fixture('bad_code.rb')])
+    options = OpenStruct.new(:files => [fixture('erb_template.rb')])
     reader = RipperTags::DataReader.new(options)
     assert_raise(ArgumentError) do
       capture_stderr do
         reader.each_tag.to_a
       end
     end
+  end
 
+  def test_no_raise_on_force
     # same as above, but should NOT raise if --force
-    options = OpenStruct.new(:files => [fixture('bad_code.rb')], force: true)
+    options = OpenStruct.new(:files => [fixture('erb_template.rb')], force: true)
     reader = RipperTags::DataReader.new(options)
     capture_stderr do
       reader.each_tag.to_a
     end
+  end
 
+  def test_no_raise_on_second
     # should NOT raise if we hit an error after processing a file
-    options = OpenStruct.new(:files => [fixture('encoding.rb'), fixture('bad_code.rb')])
+    options = OpenStruct.new(:files => [fixture('encoding.rb'), fixture('erb_template.rb')])
     reader = RipperTags::DataReader.new(options)
     capture_stderr do
       reader.each_tag.to_a
@@ -185,10 +189,10 @@ class DataReaderTest < Test::Unit::TestCase
   end
 
   def capture_stderr
-    old_stderr = $stderr
-    $stderr = StringIO.new
+    old_stderr, $stderr = $stderr, StringIO.new
     begin
       yield
+      $stderr.string
     ensure
       $stderr = old_stderr
     end
