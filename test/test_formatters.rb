@@ -129,7 +129,6 @@ C\t./script.rb\t/^class C < D$/;"\tc\tclass:A.B\tinherits:D
 TAGS
   end
 
-
   def test_emacs
     emacs = formatter_for(:format => 'emacs')
     assert_equal %{  class C < D\x7FC\x015,0}, emacs.format(build_tag(
