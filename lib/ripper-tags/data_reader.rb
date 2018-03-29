@@ -101,13 +101,12 @@ module RipperTags
   end
 
   class DataReader
-    attr_reader :options, :tag_count, :error_count
+    attr_reader :options, :error_count
 
     READ_MODE = 'r:utf-8'
 
     def initialize(options)
       @options = options
-      @tag_count = 0
       @error_count = 0
     end
 
@@ -138,19 +137,13 @@ module RipperTags
           $stderr.puts "Parsing file #{file}" if options.verbose
           extractor = tag_extractor(file)
         rescue => err
-          # print the error
+          # print the error and continue
           $stderr.puts "Error parsing `#{file}': #{err.message}"
           @error_count += 1
-
-          # Die if we ran without --force and we haven't seen any tags yet.
-          if !options.force && @tag_count == 0
-            raise err
-          end
         else
           extractor.tags.each do |tag|
             yield tag
           end
-          @tag_count += extractor.tags.length
         end
       end
     end

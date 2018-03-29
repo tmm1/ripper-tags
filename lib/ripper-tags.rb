@@ -139,7 +139,7 @@ module RipperTags
       opts.on_tail("-V", "--verbose", "Print additional information on stderr") do
         options.verbose = true
       end
-      opts.on_tail("--force", "Skip files with parsing errors") do
+      opts.on_tail("--force", "Always exit with error code 0, even when errors occur.") do
         options.force = true
       end
       opts.on_tail("--list-kinds=LANG", "Print tag kinds that this parser supports and exit") do |lang|
