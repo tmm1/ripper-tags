@@ -210,8 +210,8 @@ module RipperTags
         formatter.write(tag, out)
       end
     end
-    if !options.force && reader.error_count > 0
-      exit 2
+    if reader.error_count > 0 && !options.force && reader.error_count == reader.file_count
+      exit 1
     end
   rescue FatalError => err
     $stderr.puts "%s: %s" % [

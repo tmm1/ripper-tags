@@ -101,12 +101,13 @@ module RipperTags
   end
 
   class DataReader
-    attr_reader :options, :error_count
+    attr_reader :options, :file_count, :error_count
 
     READ_MODE = 'r:utf-8'
 
     def initialize(options)
       @options = options
+      @file_count = 0
       @error_count = 0
     end
 
@@ -144,6 +145,8 @@ module RipperTags
           extractor.tags.each do |tag|
             yield tag
           end
+        ensure
+          @file_count += 1
         end
       end
     end
