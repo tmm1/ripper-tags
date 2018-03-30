@@ -134,11 +134,11 @@ module RipperTags
 
       file_finder.each_file do |file|
         begin
-          $stderr.puts "Parsing file #{file}" if options.verbose
+          $stderr.puts "Parsing file `#{file}'" if options.verbose
           extractor = tag_extractor(file)
         rescue => err
           # print the error and continue
-          $stderr.puts "Error parsing `#{file}': #{err.message}"
+          $stderr.puts "#{err.class.name} parsing `#{file}': #{err.message}"
           @error_count += 1
         else
           extractor.tags.each do |tag|

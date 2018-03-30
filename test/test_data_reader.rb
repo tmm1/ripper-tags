@@ -146,7 +146,7 @@ class DataReaderTest < Test::Unit::TestCase
     stderr = capture_stderr do
       reader.each_tag.to_a
     end
-    assert_match(/Error parsing/, stderr)
+    assert_include(stderr, "ArgumentError parsing `#{fixture('erb_template.rb')}'")
   end unless RUBY_VERSION.to_f < 2.3
 
   def with_tempfile
