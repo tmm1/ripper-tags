@@ -139,7 +139,7 @@ module RipperTags
       opts.on_tail("-V", "--verbose", "Print additional information on stderr") do
         options.verbose = true
       end
-      opts.on_tail("--force", "Skip files with parsing errors") do
+      opts.on_tail("--force", "Always exit with error code 0, even when parse errors occur") do
         options.force = true
       end
       opts.on_tail("--list-kinds=LANG", "Print tag kinds that this parser supports and exit") do |lang|
@@ -209,6 +209,9 @@ module RipperTags
       reader.each_tag do |tag|
         formatter.write(tag, out)
       end
+    end
+    if reader.error_count > 0 && !options.force && reader.error_count == reader.file_count
+      exit 1
     end
   rescue FatalError => err
     $stderr.puts "%s: %s" % [

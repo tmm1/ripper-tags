@@ -39,6 +39,7 @@ class DataReaderTest < Test::Unit::TestCase
     files = in_fixtures { find_files('.', :exclude => %w[_git]) }
     expected = %w[
       encoding.rb
+      erb_template.rb
       very/deep/script.rb
       very/inter.rb
     ]
@@ -52,7 +53,7 @@ class DataReaderTest < Test::Unit::TestCase
 
   def test_file_finder_exclude
     files = in_fixtures { find_files('.', :exclude => %w[_git very]) }
-    expected = %w[ encoding.rb ]
+    expected = %w[ encoding.rb erb_template.rb ]
     assert_equal expected, files.sort
   end
 
@@ -60,6 +61,7 @@ class DataReaderTest < Test::Unit::TestCase
     files = in_fixtures { find_files('.', :exclude => %w[_git very/deep/*]) }
     expected = %w[
       encoding.rb
+      erb_template.rb
       very/inter.rb
     ]
     assert_equal expected, files.sort
@@ -137,6 +139,16 @@ class DataReaderTest < Test::Unit::TestCase
     end
   end
 
+  def test_survive_errors
+    # should not raise if we hit an error when processing a file
+    options = OpenStruct.new(:files => [fixture('encoding.rb'), fixture('erb_template.rb')])
+    reader = RipperTags::DataReader.new(options)
+    stderr = capture_stderr do
+      reader.each_tag.to_a
+    end
+    assert_include(stderr, "ArgumentError parsing `#{fixture('erb_template.rb')}'")
+  end unless RUBY_VERSION.to_f < 2.3
+
   def with_tempfile
     file = Tempfile.new("test-ripper-tags")
     begin
@@ -154,6 +166,16 @@ class DataReaderTest < Test::Unit::TestCase
       yield
     ensure
       $-w = old_verbose
+    end
+  end
+
+  def capture_stderr
+    old_stderr, $stderr = $stderr, StringIO.new
+    begin
+      yield
+      $stderr.string
+    ensure
+      $stderr = old_stderr
     end
   end
 end
