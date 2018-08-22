@@ -569,10 +569,17 @@ class TagRipperTest < Test::Unit::TestCase
         bar = :bar
         def_delegator foo
         def_delegators foo, bar
+        def_delegators :a,
+        def self.b() end
+        def_delegators :a, :c,
+        def self.d() end
       end
     EOC
 
-    assert_equal 1, tags.count
+    assert_equal 4, tags.count
+    assert_equal '7: singleton method F.b', inspect(tags[1])
+    assert_equal '8: method F#c',           inspect(tags[2])
+    assert_equal '9: singleton method F.d', inspect(tags[3])
   end
 
   def test_extract_from_erb

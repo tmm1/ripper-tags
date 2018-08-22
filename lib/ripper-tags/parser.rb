@@ -302,8 +302,12 @@ class Parser < Ripper
 
   def on_def_delegators(*args)
     _target, *names = args
-    names.map do |name, lineno|
-      [:def, name, lineno] if lineno
+    names.map do |name, lineno, *args|
+      if lineno.is_a?(Numeric)
+        [:def, name, lineno] if lineno
+      elsif name.is_a?(Symbol)
+        [name, lineno, *args]
+      end
     end
   end
 end
