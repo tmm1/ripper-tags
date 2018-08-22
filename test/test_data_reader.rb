@@ -97,37 +97,22 @@ class DataReaderTest < Test::Unit::TestCase
     assert_equal [], files
   end
 
-  def with_unreadable_directory_and_readable_file
+  def test_unreadable_directory
     in_fixtures do
       Dir.mkdir('unreadable', 0300)
       File.write('unreadable/will_be_ignored.rb', 'def foo;end')
 
       begin
-        yield
+        files = nil
+        stderr = capture_stderr do
+          files = find_files('.', verbose: false)
+        end
+        assert_not_include files, 'unreadable/will_be_ignored.rb'
+        assert_equal stderr, "#{File.basename($0)}: skipping unreadable directory `unreadable'\n"
       ensure
         File.delete('unreadable/will_be_ignored.rb')
         Dir.rmdir('unreadable')
       end
-    end
-  end
-
-  def test_unreadable_directory
-    with_unreadable_directory_and_readable_file do
-      stderr = capture_stderr do
-        files = find_files('.', verbose: false)
-
-        assert_not_include files, 'unreadable/will_be_ignored.rb'
-      end
-
-      assert_not_include(stderr, "Ignoring unreadable directory")
-    end
-  end
-
-  def test_unreadable_directory_verbose
-    with_unreadable_directory_and_readable_file do
-      stderr = capture_stderr { find_files('.', verbose: true) }
-
-      assert_include(stderr, "Ignoring unreadable directory `unreadable'")
     end
   end
 
