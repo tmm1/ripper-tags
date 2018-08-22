@@ -97,6 +97,14 @@ class DataReaderTest < Test::Unit::TestCase
     assert_equal [], files
   end
 
+  def test_file_finder_no_recursive
+    files = in_fixtures { find_files('encoding.rb', 'very', :recursive => false) }
+    expected = %w[
+      encoding.rb
+    ]
+    assert_equal expected, files.sort
+  end
+
   def test_unreadable_directory
     in_fixtures do
       Dir.mkdir('unreadable', 0300)
