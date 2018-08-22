@@ -192,7 +192,7 @@ class Parser < Ripper
       when /^[mc]?attr_(accessor|reader|writer)$/
         gen_reader = $1 != 'writer'
         gen_writer = $1 != 'reader'
-        args[1..-1].inject([]) do |gen, arg|
+        args[1..-1].compact.inject([]) do |gen, arg|
           gen << [:def, arg[0], line] if gen_reader
           gen << [:def, "#{arg[0]}=", line] if gen_writer
           gen
@@ -302,8 +302,12 @@ class Parser < Ripper
 
   def on_def_delegators(*args)
     _target, *names = args
-    names.map do |name, lineno|
-      [:def, name, lineno] if lineno
+    names.map do |name, lineno, *args|
+      if lineno.is_a?(Numeric)
+        [:def, name, lineno] if lineno
+      elsif name.is_a?(Symbol)
+        [name, lineno, *args]
+      end
     end
   end
 end

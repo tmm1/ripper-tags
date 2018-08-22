@@ -425,6 +425,15 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal '4: method M#b=', inspect(tags[8])
   end
 
+  def test_doesnt_crash_attr_reader
+    tags = extract(<<-EOC)
+      module M
+        attr_reader "a", "\#{b}"
+      end
+    EOC
+    assert_equal '2: method M#a',  inspect(tags[1])
+  end
+
   def test_extract_rails_associations
     tags = extract(<<-EOC)
       class C
@@ -560,10 +569,17 @@ class TagRipperTest < Test::Unit::TestCase
         bar = :bar
         def_delegator foo
         def_delegators foo, bar
+        def_delegators :a,
+        def self.b() end
+        def_delegators :a, :c,
+        def self.d() end
       end
     EOC
 
-    assert_equal 1, tags.count
+    assert_equal 4, tags.count
+    assert_equal '7: singleton method F.b', inspect(tags[1])
+    assert_equal '8: method F#c',           inspect(tags[2])
+    assert_equal '9: singleton method F.d', inspect(tags[3])
   end
 
   def test_extract_from_erb
