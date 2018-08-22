@@ -192,7 +192,7 @@ class Parser < Ripper
       when /^[mc]?attr_(accessor|reader|writer)$/
         gen_reader = $1 != 'writer'
         gen_writer = $1 != 'reader'
-        args[1..-1].inject([]) do |gen, arg|
+        args[1..-1].compact.inject([]) do |gen, arg|
           gen << [:def, arg[0], line] if gen_reader
           gen << [:def, "#{arg[0]}=", line] if gen_writer
           gen

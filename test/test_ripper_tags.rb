@@ -425,6 +425,15 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal '4: method M#b=', inspect(tags[8])
   end
 
+  def test_doesnt_crash_attr_reader
+    tags = extract(<<-EOC)
+      module M
+        attr_reader "a", "\#{b}"
+      end
+    EOC
+    assert_equal '2: method M#a',  inspect(tags[1])
+  end
+
   def test_extract_rails_associations
     tags = extract(<<-EOC)
       class C
