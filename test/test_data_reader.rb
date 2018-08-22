@@ -97,6 +97,33 @@ class DataReaderTest < Test::Unit::TestCase
     assert_equal [], files
   end
 
+  def test_file_finder_no_recursive
+    files = in_fixtures { find_files('encoding.rb', 'very', :recursive => false) }
+    expected = %w[
+      encoding.rb
+    ]
+    assert_equal expected, files.sort
+  end
+
+  def test_unreadable_directory
+    in_fixtures do
+      Dir.mkdir('unreadable', 0300)
+      File.write('unreadable/will_be_ignored.rb', 'def foo;end')
+
+      begin
+        files = nil
+        stderr = capture_stderr do
+          files = find_files('.', verbose: false)
+        end
+        assert_not_include files, 'unreadable/will_be_ignored.rb'
+        assert_equal stderr, "#{File.basename($0)}: skipping unreadable directory `unreadable'\n"
+      ensure
+        File.delete('unreadable/will_be_ignored.rb')
+        Dir.rmdir('unreadable')
+      end
+    end
+  end
+
   def in_fixtures
     Dir.chdir(FIXTURES) { yield }
   end

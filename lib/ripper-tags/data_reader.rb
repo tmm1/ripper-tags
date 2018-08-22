@@ -56,12 +56,9 @@ module RipperTags
     def resolve_file(file, depth = 0, &block)
       if File.directory?(file)
         if options.recursive && !exclude_file?(file)
-          Dir.entries(file).each do |name|
-            if name != DIR_CURRENT && name != DIR_PARENT
-              subfile = File.join(file, name)
-              subfile = clean_path(subfile) if depth == 0
-              resolve_file(subfile, depth + 1, &block)
-            end
+          each_in_directory(file) do |subfile|
+            subfile = clean_path(subfile) if depth == 0
+            resolve_file(subfile, depth + 1, &block)
           end
         end
       elsif depth > 0 || File.exist?(file)
@@ -72,6 +69,23 @@ module RipperTags
           File.basename($0),
           file
         ]
+      end
+    end
+
+    def each_in_directory(directory)
+      begin
+        entries = Dir.entries(directory)
+      rescue Errno::EACCES
+        $stderr.puts "%s: skipping unreadable directory `%s'" % [
+          File.basename($0),
+          directory
+        ]
+      else
+        entries.each do |name|
+          if name != DIR_CURRENT && name != DIR_PARENT
+            yield File.join(directory, name)
+          end
+        end
       end
     end
 
