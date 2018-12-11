@@ -474,8 +474,12 @@ class TagRipperTest < Test::Unit::TestCase
       class C
         named_scope(:red) { {:conditions=>{:color => 'red'}} }
         scope :red, where(:color => 'red')
+        scope '' do
+          get :foo
+        end
       end
     EOC
+    assert_equal 3, tags.size
     assert_equal 'Rails', tags[1][:language]
 
     assert_equal '2: scope C.red',  inspect(tags[1])
