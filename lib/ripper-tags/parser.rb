@@ -202,7 +202,8 @@ class Parser < Ripper
 
         [procedure, klass, method_name, access, line]
       when "scope", "named_scope"
-        [:rails_def, :scope, args[1][0], line]
+        scope_name = args[1][0]
+        [:rails_def, :scope, scope_name, line] if scope_name
       when /^[mc]?attr_(accessor|reader|writer)$/
         gen_reader = $1 != 'writer'
         gen_writer = $1 != 'reader'
