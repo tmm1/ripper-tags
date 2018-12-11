@@ -161,6 +161,19 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal 'singleton method', tags.find{ |t| t[:name] == 'mno' }[:kind]
     assert_equal 'private',          tags.find{ |t| t[:name] == 'pqr' }[:access]
     assert_equal 'singleton method', tags.find{ |t| t[:name] == 'pqr' }[:kind]
+
+    module_tags = extract(<<-EOC)
+      module Test
+        def abc() end
+      module_function
+        def def() end
+      end
+    EOC
+
+    assert_equal nil,                module_tags.find{ |t| t[:name] == 'abc' }[:access]
+    assert_equal 'method',           module_tags.find{ |t| t[:name] == 'abc' }[:kind]
+    assert_equal 'public',           module_tags.find{ |t| t[:name] == 'def' }[:access]
+    assert_equal 'singleton method', module_tags.find{ |t| t[:name] == 'def' }[:kind]
   end
 
   def test_extract_access_scope_inheritance
@@ -187,7 +200,8 @@ class TagRipperTest < Test::Unit::TestCase
       EOC
 
       assert_equal visibility, tags.find{ |t| t[:name] == 'abc' }[:access]
-      assert_equal nil, tags.find{ |t| t[:name] == 'def' }[:access]
+      assert_equal 'method',   tags.find{ |t| t[:name] == 'abc' }[:kind]
+      assert_equal nil,        tags.find{ |t| t[:name] == 'def' }[:access]
     end
 
     %w(private_class_method public_class_method).each do |visibility|
@@ -199,9 +213,22 @@ class TagRipperTest < Test::Unit::TestCase
       EOC
 
       scope = visibility.sub("_class_method", "")
-      assert_equal scope, tags.find{ |t| t[:name] == 'abc' }[:access]
-      assert_equal nil, tags.find{ |t| t[:name] == 'def' }[:access]
+      assert_equal scope,              tags.find{ |t| t[:name] == 'abc' }[:access]
+      assert_equal 'singleton method', tags.find{ |t| t[:name] == 'abc' }[:kind]
+      assert_equal nil,                tags.find{ |t| t[:name] == 'def' }[:access]
     end
+
+    module_tags = extract(<<-EOC)
+      module Test
+        module_function def abc() end
+        def def() end
+      end
+    EOC
+
+    assert_equal('public',           module_tags.find{ |t| t[:name] == 'abc' }[:access])
+    assert_equal('singleton method', module_tags.find{ |t| t[:name] == 'abc' }[:kind])
+    assert_equal(nil,                module_tags.find{ |t| t[:name] == 'def' }[:access])
+    assert_equal('method',           module_tags.find{ |t| t[:name] == 'def' }[:kind])
   end
 
   def test_extract_one_line_definition_access_by_symbol

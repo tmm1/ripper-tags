@@ -73,6 +73,7 @@ class Parser < Ripper
          "scope", "named_scope",
          "public_class_method", "private_class_method", "protected_class_method",
          "public", "protected", "private",
+         "module_function",
          /^[mc]?attr_(accessor|reader|writer)$/
       on_method_add_arg([:fcall, name], args[0])
     when "delegate"
@@ -144,7 +145,7 @@ class Parser < Ripper
   end
 
   def on_vcall(name)
-    [name[0].to_sym] if name[0].to_s =~ /^(private|protected|public|private_class_method|public_class_method)$/
+    [name[0].to_sym] if name[0].to_s =~ /^(private|protected|public|private_class_method|public_class_method|module_function)$/
   end
 
   def on_call(lhs, op, rhs)
@@ -183,6 +184,19 @@ class Parser < Ripper
           method_name = args[1][2]
         else
           klass = nil
+          method_name = args[1][1]
+        end
+
+        [procedure, klass, method_name, access, line]
+      when "module_function"
+        access = "public"
+        klass = "self"
+        procedure = :def_with_access
+
+        if args[1][0].is_a?(String)
+          procedure = :redefine_access
+          method_name = args[1][0]
+        else
           method_name = args[1][1]
         end
 
@@ -397,6 +411,11 @@ end
     def on_public()               @current_access = 'public'    end
     def on_private_class_method() @current_access = 'private'   end
     def on_public_class_method()  @current_access = 'public'    end
+
+    def on_module_function()
+      @is_singleton = true
+      @current_access = 'public'
+    end
 
     # Ripper trips up on keyword arguments in pre-2.1 Ruby and supplies extra
     # arguments that we just ignore here
