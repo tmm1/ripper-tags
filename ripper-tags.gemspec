@@ -11,9 +11,7 @@ Gem::Specification.new do |s|
 
   s.summary = 'ctags generator for ruby code'
   s.description = 'fast, accurate ctags generator for ruby source code using Ripper'
-
   s.homepage = 'http://github.com/tmm1/ripper-tags'
-  s.has_rdoc = false
 
   s.authors = ['Aman Gupta']
   s.email = ['aman@tmm1.net']
