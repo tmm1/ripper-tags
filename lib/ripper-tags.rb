@@ -6,6 +6,7 @@ require 'ripper-tags/data_reader'
 require 'ripper-tags/default_formatter'
 require 'ripper-tags/emacs_formatter'
 require 'ripper-tags/vim_formatter'
+require 'ripper-tags/vim_append_formatter'
 require 'ripper-tags/json_formatter'
 
 module RipperTags

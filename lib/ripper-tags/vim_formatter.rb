@@ -30,10 +30,14 @@ module RipperTags
     end
 
     def write(tag, out)
-      @queued_write << format(tag)
+      write_line(format(tag))
       if include_qualified_names? && tag[:full_name] != tag[:name] && constant?(tag)
-        @queued_write << format(tag, :full_name)
+        write_line(format(tag, :full_name))
       end
+    end
+
+    def write_line(line)
+      @queued_write << line
     end
 
     def display_constant(const)
