@@ -16,6 +16,7 @@ module RipperTags
   def self.default_options
     OpenStruct.new \
       :format => nil,
+      :formatter => nil,
       :extra_flags => Set.new,
       :tag_file_name => nil,
       :tag_file_append => false,
@@ -196,14 +197,25 @@ module RipperTags
   end
 
   def self.formatter_for(options)
-    options.formatter ||
-    case options.format
-    when "vim"    then RipperTags::VimFormatter
-    when "emacs"  then RipperTags::EmacsFormatter
-    when "json"   then RipperTags::JSONFormatter
-    when "custom" then RipperTags::DefaultFormatter
-    else raise FatalError, "unknown format: #{options.format.inspect}"
-    end.new(options)
+    return options.formatter unless options.formatter.nil?
+
+    if options.tag_file_append
+      case options.format
+      when "vim"   then RipperTags::VimAppendFormatter.new(RipperTags::VimFormatter.new(options))
+      when "emacs" then RipperTags::EmacsAppendFormatter.new(RipperTags::EmacsFormatter.new(options))
+      else
+        raise FatalError, "--append is only supported for vim/emacs; got #{options.format.inspect}"
+      end
+    else
+      case options.format
+      when "vim"    then RipperTags::VimFormatter.new(options)
+      when "emacs"  then RipperTags::EmacsFormatter.new(options)
+      when "json"   then RipperTags::JSONFormatter.new(options)
+      when "custom" then RipperTags::DefaultFormatter.new(options)
+      else
+        raise FatalError, "unknown format: #{options.format.inspect}"
+      end
+    end
   end
 
   def self.run(options)
