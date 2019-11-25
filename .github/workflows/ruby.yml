@@ -6,6 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         ruby_version: ['2.3.x', '2.4.x', '2.5.x', '2.6.x']
 
