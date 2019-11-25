@@ -118,17 +118,26 @@ class CliTest < Test::Unit::TestCase
   def test_tag_relative_on
     options = process_args(%w[--tag-relative hello.rb])
     assert_equal true, options.tag_relative
-    assert_equal %w[hello.rb], options.files
   end
 
   def test_tag_relative_explicit_yes
     options = process_args(%w[-R --tag-relative=yes])
-    assert_equal true, options.tag_relative
+    assert_equal 'yes', options.tag_relative
   end
 
   def test_tag_relative_explicit_no
     options = process_args(%w[-R --tag-relative=no])
-    assert_equal false, options.tag_relative
+    assert_equal 'no', options.tag_relative
+  end
+
+  def test_tag_relative_explicit_always
+    options = process_args(%w[-R --tag-relative=always])
+    assert_equal 'always', options.tag_relative
+  end
+
+  def test_tag_relative_explicit_never
+    options = process_args(%w[-R --tag-relative=never])
+    assert_equal 'never', options.tag_relative
   end
 
   def test_tag_relative_on_for_emacs

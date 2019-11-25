@@ -56,16 +56,23 @@ module RipperTags
     end
 
     def tag_file_dir
-      @tag_file_dir ||= Pathname.new(options.tag_file_name).dirname.expand_path
+      @tag_file_dir ||= stdout? ?
+        Pathname.pwd :
+        Pathname.new(options.tag_file_name).dirname.expand_path
     end
 
     def relative_path(tag)
       path = tag.fetch(:path)
-      if options.tag_relative && !stdout? && path.index('/') != 0
-        Pathname.new(path).expand_path.relative_path_from(tag_file_dir).to_s
-      else
-        path
+      case options.tag_relative
+      when true, 'yes', 'always'
+        filepath = Pathname.new(path)
+        if options.tag_relative == 'always' || filepath.relative?
+          path = filepath.expand_path.relative_path_from(tag_file_dir).to_s
+        end
+      when 'never'
+        path = File.expand_path(path)
       end
+      path
     end
 
     def constant?(tag)

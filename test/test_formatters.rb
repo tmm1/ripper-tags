@@ -204,6 +204,24 @@ def imethod\x7Fimethod\x013,0
     assert_equal 'to/script.rb', formatter.relative_path(tag)
   end
 
+  def test_relative_with_absolute_source_path
+    formatter = formatter_for(:format => 'custom', :tag_file_name => '/tmp/tags', :tag_relative => true)
+    tag = build_tag(:path => '/path/to/script.rb')
+    assert_equal '/path/to/script.rb', formatter.relative_path(tag)
+  end
+
+  def test_relative_always_with_absolute_source_path
+    formatter = formatter_for(:format => 'custom', :tag_file_name => '/tmp/tags', :tag_relative => 'always')
+    tag = build_tag(:path => '/path/to/script.rb')
+    assert_equal '../path/to/script.rb', formatter.relative_path(tag)
+  end
+
+  def test_relative_never_with_relative_source_path
+    formatter = formatter_for(:format => 'custom', :tag_file_name => 'tags', :tag_relative => 'never')
+    tag = build_tag(:path => 'path/to/script.rb')
+    assert_equal "#{Dir.pwd}/path/to/script.rb", formatter.relative_path(tag)
+  end
+
   def test_no_relative
     formatter = formatter_for(:format => 'custom', :tag_file_name => '.git/tags')
     tag = build_tag(:path => 'path/to/script.rb')
