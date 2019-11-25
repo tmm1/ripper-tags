@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby_version: ['1.9', '2.0', '2.1', '2.2', '2.3', '2.4', '2.5', '2.6']
+        ruby_version: ['2.3.x', '2.4.x', '2.5.x', '2.6.x']
 
     steps:
     - uses: actions/checkout@v1
@@ -17,6 +17,6 @@ jobs:
         ruby-version: ${{ matrix.ruby_version }}
     - name: Run tests
       run: |
-        bundle --version 2>/dev/null || gem install bundler
+        bundle --version 2>/dev/null || gem install --no-document bundler
         bundle install --jobs 4 --retry 3
         bundle exec rake
