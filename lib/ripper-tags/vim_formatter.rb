@@ -41,10 +41,18 @@ module RipperTags
     end
 
     def display_excmd_info(tag)
-      if options.excmd == "number"
+      case options.excmd
+      when 'n', 'number'
         "%d;\"" % tag.fetch(:line)
-      else
+      when nil, 'p', 'pattern', 'm', 'mixed'
         "/^%s$/;\"" % tag.fetch(:pattern).to_s.gsub('\\','\\\\\\\\').gsub('/','\\/')
+      when 'c', 'combined'
+        "%d;/^%s$/;\"" % [
+          tag.fetch(:line) - 1,
+          tag.fetch(:pattern).to_s.gsub('\\','\\\\\\\\').gsub('/','\\/')
+        ]
+      else
+        raise 'invalid excmd value: %p', options.excmd
       end
     end
 
