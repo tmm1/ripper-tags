@@ -110,7 +110,7 @@ module RipperTags
           options.exclude << pattern
         end
       end
-      opts.on("--excmd=number", "Use EX number command to locate tags.") do |excmd|
+      opts.on("--excmd=(number|pattern|mixed|combined)", "Type of EX command to find tags in vim with (default: pattern)") do |excmd|
         options.excmd = excmd
       end
       opts.on("-n", "Equivalent to --excmd=number.") do

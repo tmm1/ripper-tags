@@ -108,6 +108,20 @@ class FormattersTest < Test::Unit::TestCase
     ))
   end
 
+  def test_vim_with_excmd_combined
+    vim = formatter_for(:format => 'vim', :excmd => 'combined')
+    assert_equal %{C\t./script.rb\t41;/^class C < D$/;"\tc}, vim.format(build_tag(
+      :kind => 'class', :name => 'C',
+      :pattern => "class C < D",
+      :line => 42
+    ))
+    assert_equal %{C\t./script.rb\t105498;/^class C < D$/;"\tc}, vim.format(build_tag(
+      :kind => 'class', :name => 'C',
+      :pattern => "class C < D",
+      :line => 105499
+    ))
+  end
+
   def test_vim_with_fully_qualified
     vim = formatter_for(:format => 'vim', :extra_flags => %w[q].to_set, :tag_file_name => '-')
 
