@@ -5,7 +5,9 @@ require 'ripper-tags/parser'
 require 'ripper-tags/data_reader'
 require 'ripper-tags/default_formatter'
 require 'ripper-tags/emacs_formatter'
+require 'ripper-tags/emacs_append_formatter'
 require 'ripper-tags/vim_formatter'
+require 'ripper-tags/vim_append_formatter'
 require 'ripper-tags/json_formatter'
 
 module RipperTags
@@ -16,8 +18,10 @@ module RipperTags
   def self.default_options
     OpenStruct.new \
       :format => nil,
+      :formatter => nil,
       :extra_flags => Set.new,
       :tag_file_name => nil,
+      :tag_file_append => false,
       :tag_relative => nil,
       :debug => false,
       :verbose_debug => false,
@@ -86,6 +90,9 @@ module RipperTags
       opts.on("-f", "--tag-file (FILE|-)", "File to write tags to (default: `./tags')",
              '"-" outputs to standard output') do |fname|
         options.tag_file_name = fname
+      end
+      opts.on("-a", "--append[=yes|no]", "Append tags to existing file") do |value|
+        options.tag_file_append = value != "no"
       end
       opts.on("--tag-relative[=yes|no|always|never]", "Make file paths relative to the directory of the tag file") do |value|
         options.tag_relative = value || true
@@ -198,14 +205,25 @@ module RipperTags
   end
 
   def self.formatter_for(options)
-    options.formatter ||
-    case options.format
-    when "vim"    then RipperTags::VimFormatter
-    when "emacs"  then RipperTags::EmacsFormatter
-    when "json"   then RipperTags::JSONFormatter
-    when "custom" then RipperTags::DefaultFormatter
-    else raise FatalError, "unknown format: #{options.format.inspect}"
-    end.new(options)
+    return options.formatter unless options.formatter.nil?
+
+    if options.tag_file_append
+      case options.format
+      when "vim"   then RipperTags::VimAppendFormatter.new(RipperTags::VimFormatter.new(options))
+      when "emacs" then RipperTags::EmacsAppendFormatter.new(RipperTags::EmacsFormatter.new(options))
+      else
+        raise FatalError, "--append is only supported for vim/emacs; got #{options.format.inspect}"
+      end
+    else
+      case options.format
+      when "vim"    then RipperTags::VimFormatter.new(options)
+      when "emacs"  then RipperTags::EmacsFormatter.new(options)
+      when "json"   then RipperTags::JSONFormatter.new(options)
+      when "custom" then RipperTags::DefaultFormatter.new(options)
+      else
+        raise FatalError, "unknown format: #{options.format.inspect}"
+      end
+    end
   end
 
   def self.run(options)
