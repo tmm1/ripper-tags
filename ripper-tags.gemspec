@@ -11,10 +11,10 @@ Gem::Specification.new do |s|
 
   s.summary = 'ctags generator for ruby code'
   s.description = 'fast, accurate ctags generator for ruby source code using Ripper'
-  s.homepage = 'http://github.com/tmm1/ripper-tags'
+  s.homepage = 'https://github.com/tmm1/ripper-tags'
 
-  s.authors = ['Aman Gupta']
-  s.email = ['aman@tmm1.net']
+  s.authors = ['Mislav Marohnić', 'Aman Gupta']
+  s.email = ['mislav.marohnic@gmail.com', 'aman@tmm1.net']
 
   s.require_paths = ['lib']
   s.bindir = 'bin'
