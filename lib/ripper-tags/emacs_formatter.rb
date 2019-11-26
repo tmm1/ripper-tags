@@ -11,12 +11,6 @@ module RipperTags
   # new source file is encountered or when `with_output` block finishes. This
   # assumes that incoming tags are ordered by source file.
   class EmacsFormatter < DefaultFormatter
-    def initialize(*)
-      super
-      @current_file = nil
-      @section_io = nil
-    end
-
     def supported_flags() ['q'] end
 
     def include_qualified_names?
@@ -25,6 +19,9 @@ module RipperTags
     end
 
     def with_output
+      @current_file = nil
+      @section_io = nil
+
       super do |io|
         begin
           yield io
@@ -43,21 +40,24 @@ module RipperTags
       end
     end
 
+    def write_section(filename, data, io)
+      io.write format_section_header(filename, data)
+      io.write data
+    end
+
     def start_file_section(filename, io)
       if filename != @current_file
         flush_file_section(io)
         @current_file = filename
         @section_io = StringIO.new
-      else
-        @section_io
       end
+      @section_io
     end
 
     def flush_file_section(out)
       if @section_io
-        data = @section_io.string
-        out.write format_section_header(@current_file, data)
-        out.write data
+        write_section(@current_file, @section_io.string, out)
+        @section_io = nil
       end
     end
 
