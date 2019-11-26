@@ -36,7 +36,13 @@ class Parser < Ripper
     [:defs, receiver && receiver[0], *method]
   end
   def on_alias(lhs, rhs)
-    [:alias, lhs[0], rhs[0], rhs[1]] if lhs && rhs
+    if lhs && rhs
+      name, other = lhs[0], rhs[0]
+      name = name[0] if Array === name
+      other = other[0] if Array === other
+      line = rhs[1]
+      [:alias, name, other, line]
+    end
   end
   def on_assign(lhs, rhs)
     return if lhs.nil?
@@ -169,9 +175,11 @@ class Parser < Ripper
       name, line = call[1]
       case name
       when "alias_method"
-        [:alias, args[1][0], args[2][0], line] if args[1] && args[2]
+        if args[1] && String === args[1][0] && args[2] && String === args[2][0]
+          [:alias, args[1][0], args[2][0], line]
+        end
       when "define_method"
-        [:def, args[1][0], line]
+        [:def, args[1][0], line] if String === args[1][0]
       when "public_class_method", "private_class_method", "protected_class_method", "private", "public", "protected"
         access = name.sub("_class_method", "")
         klass = name == access ? nil : 'self'
