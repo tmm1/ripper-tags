@@ -94,8 +94,8 @@ module RipperTags
       opts.on("-a", "--append[=yes|no]", "Append tags to existing file") do |value|
         options.tag_file_append = value != "no"
       end
-      opts.on("--tag-relative[=OPTIONAL]", "Make file paths relative to the directory of the tag file") do |value|
-        options.tag_relative = value != "no"
+      opts.on("--tag-relative[=yes|no|always|never]", "Make file paths relative to the directory of the tag file") do |value|
+        options.tag_relative = value || true
       end
       opts.on("-L", "--input-file=FILE", "File to read paths to process trom (use `-` for stdin)") do |file|
         options.input_file = file
@@ -193,6 +193,12 @@ module RipperTags
       options.tag_file_name ||= options.format == 'emacs' ? './TAGS' : './tags'
       options.format ||= File.basename(options.tag_file_name) == 'TAGS' ? 'emacs' : 'vim'
       options.tag_relative = options.format == "emacs" if options.tag_relative.nil?
+
+      case options.tag_relative
+      when true, false, 'yes', 'no', 'always', 'never'
+      else
+        raise OptionParser::InvalidOption, 'unsupported value for --tag-relative: %p' % options.tag_relative
+      end
 
       return run.call(options)
     end
