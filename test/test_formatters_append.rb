@@ -47,6 +47,27 @@ EOF
     end
   end
 
+  def test_vim_append_no_file
+    file = Tempfile.new('ripper-tags')
+    begin
+      File.delete(file.path)
+      options = OpenStruct.new(:tag_file_name => file.path)
+      fmt = RipperTags::VimFormatter.new(options)
+      fmt = RipperTags::VimAppendFormatter.new(fmt)
+      fmt.with_output do |out|
+        fmt.write(build_tag('bagel', 'two.rb'), out)
+      end
+
+      assert_equal <<EOF, File.read(file.path)
+!_TAG_FILE_FORMAT\t2\t/extended format; --format=1 will not append ;\" to lines/
+!_TAG_FILE_SORTED\t1\t/0=unsorted, 1=sorted, 2=foldcase/
+bagel\ttwo.rb\t/^def bagel$/;\"\tf
+EOF
+    ensure
+      file.unlink
+    end
+  end
+
   def test_emacs_append
     file = Tempfile.new('ripper-tags')
     begin
@@ -74,6 +95,26 @@ def bagel\u007Fbagel\u00011,0
 def apple\u007Fapple\u00011,0
 \f\nthree.rb,28
 def cranberry\u007Fcranberry\u00011,0
+EOF
+    ensure
+      file.unlink
+    end
+  end
+
+  def test_emacs_append_no_file
+    file = Tempfile.new('ripper-tags')
+    begin
+      File.delete(file.path)
+      options = OpenStruct.new(:tag_file_name => file.path)
+      fmt = RipperTags::EmacsFormatter.new(options)
+      fmt = RipperTags::EmacsAppendFormatter.new(fmt)
+      fmt.with_output do |out|
+        fmt.write(build_tag('bagel', 'two.rb'), out)
+      end
+
+      assert_equal <<EOF, File.read(file.path)
+\f\ntwo.rb,20
+def bagel\u007Fbagel\u00011,0
 EOF
     ensure
       file.unlink

@@ -9,7 +9,11 @@ module RipperTags
     end
 
     def with_output
-      orig_lines = File.readlines(@formatter.options.tag_file_name)
+      orig_lines = begin
+        File.readlines(@formatter.options.tag_file_name)
+      rescue Errno::ENOENT
+        []
+      end
       @seen_filenames = Set.new
 
       @formatter.with_output do |out|

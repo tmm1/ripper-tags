@@ -38,6 +38,8 @@ module RipperTags
         end
       end
       section_map
+    rescue Errno::ENOENT
+      {}
     end
   end
 end
