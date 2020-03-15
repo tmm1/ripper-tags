@@ -103,6 +103,9 @@ module RipperTags
       opts.on("-R", "--recursive", "Descend recursively into subdirectories") do
         options.recursive = true
       end
+      opts.on("--recurse=[yes|no]", "Alias for --recursive") do |value|
+        options.recursive = value != 'no'
+      end
       opts.on("--exclude PATTERN", "Exclude a file, directory or pattern") do |pattern|
         if pattern.empty?
           options.exclude.clear
