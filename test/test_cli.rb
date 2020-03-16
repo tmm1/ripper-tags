@@ -70,6 +70,16 @@ class CliTest < Test::Unit::TestCase
     assert_equal %w[.], options.files
   end
 
+  def test_recursive_ctags_compatible_alias
+    options = process_args(%w[--recurse])
+    assert_equal true, options.recursive
+  end
+
+  def test_recursive_ctags_when_alias_when_set_to_no
+    options = process_args(%w[--recurse=no -L .])
+    assert_equal false, options.recursive
+  end
+
   def test_exclude_add_patterns
     options = process_args(%w[-R --exclude vendor --exclude=bundle/*])
     assert_equal %w[.git vendor bundle/*], options.exclude
