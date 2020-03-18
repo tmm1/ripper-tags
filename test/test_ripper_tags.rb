@@ -848,7 +848,6 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal 3, tags.size
     assert_equal '1: class A', inspect(tags[0])
     assert_equal '2: method A#outer_method', inspect(tags[1])
-    # Not entirely correct, but good enough for tagging
     assert_equal '4: singleton method A.inner_method', inspect(tags[2])
   end
 end
