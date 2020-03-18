@@ -787,6 +787,7 @@ class TagRipperTest < Test::Unit::TestCase
   def test_decorated_method
     tags = extract(<<-EOC)
       class Foo
+        puts "%d" % 1
         memoize def calculate; end
       end
     EOC
