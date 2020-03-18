@@ -367,7 +367,6 @@ end
     end
 
     def process(sexp)
-      puts sexp.inspect
       return unless sexp
       return if Symbol === sexp
 
