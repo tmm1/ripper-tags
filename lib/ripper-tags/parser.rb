@@ -88,6 +88,12 @@ class Parser < Ripper
       on_def_delegator(*args[0][1..-1])
     when "def_delegators", "def_instance_delegators"
       on_def_delegators(*args[0][1..-1])
+    else
+      # Handle decorators: if what follows is a method def, pass it on
+      _, inner = args[0]
+      if inner[0] == :def
+        on_def inner[1..-1], nil, nil
+      end
     end
   end
   def on_bodystmt(*args)
@@ -361,6 +367,7 @@ end
     end
 
     def process(sexp)
+      puts sexp.inspect
       return unless sexp
       return if Symbol === sexp
 
