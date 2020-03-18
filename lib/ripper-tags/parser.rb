@@ -88,6 +88,14 @@ class Parser < Ripper
       on_def_delegator(*args[0][1..-1])
     when "def_delegators", "def_instance_delegators"
       on_def_delegators(*args[0][1..-1])
+    else
+      if args[0].respond_to?(:[])
+        # Handle decorators: if what follows is a method def, pass it on
+        inner = args[0][1]
+        if inner.respond_to?(:[]) && inner[0] == :def
+          on_def(inner[1..-1], nil, nil)
+        end
+      end
     end
   end
   def on_bodystmt(*args)

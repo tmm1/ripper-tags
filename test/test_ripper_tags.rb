@@ -783,4 +783,17 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal 2, tags.size
     assert_equal 'C', tags[1][:name]
   end
+
+  def test_decorated_method
+    tags = extract(<<-EOC)
+      class Foo
+        puts "%d" % 1
+        memoize def calculate; end
+      end
+    EOC
+
+    assert_equal 2, tags.size
+    assert_equal 'Foo', tags[0][:name]
+    assert_equal 'calculate', tags[1][:name]
+  end
 end
