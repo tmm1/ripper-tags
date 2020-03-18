@@ -783,4 +783,72 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal 2, tags.size
     assert_equal 'C', tags[1][:name]
   end
+
+  # For the following four cases, see https://www.rubydoc.info/gems/rubocop/RuboCop/Cop/Lint/NestedMethodDefinition
+  def test_inner_methods_bad
+    tags = extract(<<-EOC)
+      class A
+        def outer_method
+          def inner_method; end
+        end
+      end
+    EOC
+
+    assert_equal 3, tags.size
+    assert_equal '1: class A', inspect(tags[0])
+    assert_equal '2: method A#outer_method', inspect(tags[1])
+    assert_equal '3: method A#inner_method', inspect(tags[2])
+  end
+
+  def test_inner_methods_classeval
+    tags = extract(<<-EOC)
+      class A
+        def outer_method
+          self.class_eval do
+            def inner_method; end
+          end
+        end
+      end
+    EOC
+
+    assert_equal 3, tags.size
+    assert_equal '1: class A', inspect(tags[0])
+    assert_equal '2: method A#outer_method', inspect(tags[1])
+    assert_equal '4: method A#inner_method', inspect(tags[2])
+  end
+
+  def test_inner_methods_moduleexec
+    tags = extract(<<-EOC)
+      class A
+        def outer_method
+          self.module_exec do
+            def inner_method; end
+          end
+        end
+      end
+    EOC
+
+    assert_equal 3, tags.size
+    assert_equal '1: class A', inspect(tags[0])
+    assert_equal '2: method A#outer_method', inspect(tags[1])
+    assert_equal '4: method A#inner_method', inspect(tags[2])
+  end
+
+  def test_inner_methods_eigenclass
+    tags = extract(<<-EOC)
+      class A
+        def outer_method
+          class << self
+            def inner_method; end
+          end
+        end
+      end
+    EOC
+
+    assert_equal 3, tags.size
+    assert_equal '1: class A', inspect(tags[0])
+    assert_equal '2: method A#outer_method', inspect(tags[1])
+    # Not entirely correct, but good enough for tagging
+    assert_equal '4: singleton method A.inner_method', inspect(tags[2])
+  end
 end

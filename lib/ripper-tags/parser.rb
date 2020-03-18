@@ -29,7 +29,7 @@ class Parser < Ripper
     [:class, name, superclass, *body.compact]
   end
   def on_def(method, args, body)
-    [:def, *method]
+    [:def, *method, body]
   end
   def on_defs(receiver, op, method, args, body)
     receiver.flatten!(1) if receiver
@@ -278,7 +278,7 @@ class Parser < Ripper
 
   def on_method_add_block(method, body)
     return unless method
-    if %w[class_eval module_eval].include?(method[2]) && body
+    if %w[class_eval module_eval module_exec].include?(method[2]) && body
       [:class_eval, [
         method[1].is_a?(Array) ? method[1][0] : method[1],
         method[3]
@@ -463,7 +463,7 @@ end
         :class => ns
     end
 
-    def on_def(name, line)
+    def on_def(name, line, body=nil)
       kind = @is_singleton ? 'singleton method' : 'method'
       ns = (@namespace.empty?? 'Object' : @namespace.join('::'))
 
@@ -471,6 +471,7 @@ end
         :name => name,
         :full_name => "#{ns}#{@is_singleton ? '.' : '#'}#{name}",
         :class => ns
+      process(body) if body
     end
 
     def on_defs(klass, name, line)
@@ -523,7 +524,7 @@ end
 
     def on_class_eval(name, body)
       name, _ = *name
-      @namespace << name
+      @namespace << name unless name == 'self'
       process(body)
     ensure
       @namespace.pop
