@@ -223,11 +223,13 @@ class Parser < Ripper
       when /^[mc]?attr_(accessor|reader|writer)$/
         gen_reader = $1 != 'writer'
         gen_writer = $1 != 'reader'
-        args[1..-1].compact.inject([]) do |gen, arg|
+        gen = []
+        args[1..-1].compact.each do |arg|
+          next unless arg[0].is_a?(String)
           gen << [:def, arg[0], line] if gen_reader
           gen << [:def, "#{arg[0]}=", line] if gen_writer
-          gen
         end
+        gen
       when "has_many", "has_and_belongs_to_many"
         a = args[1][0]
         kind = name.to_sym

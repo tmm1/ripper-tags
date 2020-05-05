@@ -419,7 +419,7 @@ class TagRipperTest < Test::Unit::TestCase
   def test_extract_mattr_accessor
     tags = extract(<<-EOC)
       module M
-        mattr_accessor :a, "b"
+        mattr_accessor :a, "b", instance_writer: false, default: MemoryStore.new
         mattr_reader(:a, :b)
         mattr_writer(:a, :b)
       end
