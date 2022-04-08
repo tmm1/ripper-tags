@@ -97,7 +97,7 @@ module RipperTags
       opts.on("--tag-relative[=yes|no|always|never]", "Make file paths relative to the directory of the tag file") do |value|
         options.tag_relative = value || true
       end
-      opts.on("-L", "--input-file=FILE", "File to read paths to process trom (use `-` for stdin)") do |file|
+      opts.on("-L", "--input-file=FILE", "File to read paths to process from (use `-` for stdin)") do |file|
         options.input_file = file
       end
       opts.on("-R", "--recursive", "Descend recursively into subdirectories") do
