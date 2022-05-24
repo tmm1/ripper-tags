@@ -193,17 +193,21 @@ class Parser < Ripper
         klass = name == access ? nil : 'self'
         procedure = :def_with_access
 
-        if args[1][0].is_a?(String)
-          procedure = :redefine_access
-          method_name = args[1][0]
+        if args[1][0].is_a?(Array)
+          args[1].inject([]) do |gen, def_args|
+            if def_args[1].is_a?(String)
+              gen << [procedure, klass, def_args[1], access, line]
+            else
+              gen
+            end
+          end
+        elsif args[1][0].is_a?(String)
+          [:redefine_access, klass, args[1][0], access, line]
         elsif args[1][1] == 'self'
-          method_name = args[1][2]
+          [procedure, klass, args[1][2], access, line]
         else
-          klass = nil
-          method_name = args[1][1]
+          [procedure, nil, args[1][1], access, line]
         end
-
-        [procedure, klass, method_name, access, line]
       when "module_function"
         access = "public"
         klass = "self"
