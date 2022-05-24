@@ -203,6 +203,25 @@ class TagRipperTest < Test::Unit::TestCase
       assert_equal 'method',   tags.find{ |t| t[:name] == 'abc' }[:kind]
       assert_equal nil,        tags.find{ |t| t[:name] == 'def' }[:access]
     end
+    
+    %w(private public protected).each do |visibility|
+      tags = extract(<<-EOC)
+        class Test
+          #{visibility} attr_reader :a, :b
+          attr_reader :c
+        end
+      EOC
+
+      assert_equal 'a',        tags[1][:name]
+      assert_equal visibility, tags[1][:access]
+      assert_equal 'method',   tags[1][:kind]
+      assert_equal 'b',        tags[2][:name]
+      assert_equal visibility, tags[2][:access]
+      assert_equal 'method',   tags[2][:kind]
+      assert_equal 'c',        tags[3][:name]
+      assert_equal nil,        tags[3][:access]
+      assert_equal 'method',   tags[3][:kind]
+    end
 
     %w(private_class_method public_class_method).each do |visibility|
       tags = extract(<<-EOC)
