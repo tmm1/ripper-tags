@@ -8,16 +8,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby_version: ['2.4.x', '2.5.x', '2.6.x']
+        ruby_version:
+          - "1.9.3"
+          - "2.0"
+          - "2.1"
+          - "2.2"
+          - "2.3"
+          - "2.4"
+          - "2.5"
+          - "2.6"
+          - "2.7"
+          - "3.0"
+          - "3.1"
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Set up Ruby
-      uses: actions/setup-ruby@v1
-      with:
-        ruby-version: ${{ matrix.ruby_version }}
-    - name: Run tests
-      run: |
-        bundle --version 2>/dev/null || gem install --no-document bundler
-        bundle install --jobs 4 --retry 3
-        bundle exec rake
+      - uses: actions/checkout@v3
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby_version }}
+          bundler-cache: true
+      - name: Run tests
+        run: bundle exec rake

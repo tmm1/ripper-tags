@@ -3,3 +3,4 @@ TAGS
 ripper-tags-*gem
 *.swp
 Gemfile.lock
+.ruby-version
