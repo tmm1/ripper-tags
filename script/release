@@ -14,3 +14,5 @@ fi
 
 git push origin HEAD "v${version}"
 gem push "$gem"
+
+gh release create "v${version}" --title "ripper-tags $version" --generate-notes
