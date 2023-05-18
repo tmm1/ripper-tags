@@ -173,8 +173,12 @@ class DataReaderTest < Test::Unit::TestCase
     stderr = capture_stderr do
       reader.each_tag.to_a
     end
-    assert_include(stderr, "ArgumentError parsing `#{fixture('erb_template.rb')}'")
-  end unless RUBY_VERSION.to_f < 2.3
+    if RUBY_VERSION.to_f >= 2.3 && RUBY_VERSION.to_f < 3.2
+      assert_include(stderr, "ArgumentError parsing `#{fixture('erb_template.rb')}'")
+    else
+      assert_equal("", stderr)
+    end
+  end
 
   def with_tempfile
     file = Tempfile.new("test-ripper-tags")
