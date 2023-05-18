@@ -293,7 +293,7 @@ class Parser < Ripper
   def on_method_add_block(method, body)
     if method.nil?
       body ? body.last : nil
-    elsif %w[class_eval module_eval].include?(method[2]) && body
+    elsif (method[2] == "class_eval" || method[2] == "module_eval") && body
       [:class_eval, [
         method[1].is_a?(Array) ? method[1][0] : method[1],
         method[3]
