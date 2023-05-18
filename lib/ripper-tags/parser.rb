@@ -136,7 +136,7 @@ class Parser < Ripper
   end
 
   def on_string_add(*args)
-    [args[1], lineno]
+    [args[1], lineno] unless args[0].is_a?(Array) && args[0].include?(:string_embexpr)
   end
 
   def on_string_embexpr(*)
@@ -291,8 +291,9 @@ class Parser < Ripper
   end
 
   def on_method_add_block(method, body)
-    return unless method
-    if %w[class_eval module_eval].include?(method[2]) && body
+    if method.nil?
+      body ? body.last : nil
+    elsif (method[2] == "class_eval" || method[2] == "module_eval") && body
       [:class_eval, [
         method[1].is_a?(Array) ? method[1][0] : method[1],
         method[3]
@@ -302,6 +303,8 @@ class Parser < Ripper
       call = method.dup
       call[4] = body.last
       call
+    elsif :fcall == method[0] && body
+      body.last
     else
       super
     end
@@ -544,12 +547,17 @@ end
     end
 
     def on_call(*args)
+      process(args)
     end
-    alias on_aref_field on_call
-    alias on_field on_call
-    alias on_fcall on_call
-    alias on_args on_call
-    alias on_assoc on_call
-    alias on_! on_call
+
+    def ignore(*args)
+    end
+
+    alias on_aref_field ignore
+    alias on_field ignore
+    alias on_fcall ignore
+    alias on_args ignore
+    alias on_assoc ignore
+    alias on_! ignore
   end
 end

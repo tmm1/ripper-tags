@@ -87,18 +87,26 @@ class TagRipperTest < Test::Unit::TestCase
         OPEN = 'open',
       ]
 
+      FROZEN_ARRAY = [ARRAY_ENTRY = 1].freeze
+
       DISPLAY_MAPPING = {
         CANCELLED = 'cancelled' => 'Cancelled by user',
         STARTED = 'started' => 'Started by user',
       }
+
+      FROZEN_HASH = { HASH_ENTRY = 2 => 3 }.freeze
     EOC
 
     assert_equal %w[
       OPEN
       STATUSES
+      ARRAY_ENTRY
+      FROZEN_ARRAY
       CANCELLED
       STARTED
       DISPLAY_MAPPING
+      HASH_ENTRY
+      FROZEN_HASH
     ], tags.map { |t| t[:name] }
 
     tags.each do |t|
@@ -814,5 +822,28 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal 2, tags.size
     assert_equal 'Foo', tags[0][:name]
     assert_equal 'calculate', tags[1][:name]
+  end
+
+  def test_method_defined_in_block
+    tags = extract(<<-EOC)
+      RSpec.describe do
+        def test_method; end
+      end
+
+      module M
+        included do
+          def included_method; end
+          attr_accessor :cache
+        end
+
+        %w[sub gsub].each do |m|
+          define_method("\#{m}!") {}
+          attr_reader m
+        end
+      end
+    EOC
+
+    expected = ["Object#test_method", "M", "M#included_method", "M#cache", "M#cache="]
+    assert_equal expected, tags.map { |t| t[:full_name] }
   end
 end
