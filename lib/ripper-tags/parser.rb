@@ -316,8 +316,8 @@ class Parser < Ripper
   end
 
   def on_delegate(*args)
-    method_names = args.select { |arg| arg.first.is_a? String }
-    options = args.select { |arg| arg.first.is_a?(Array) && arg.first.first == :assoc }.flatten(1)
+    method_names = args.select { |arg| arg.is_a?(Array) && arg.first.is_a?(String) }
+    options = args.select { |arg| arg.is_a?(Array) && arg.first.is_a?(Array) && arg.first.first == :assoc }.flatten(1)
     options = Hash[options.map { |_assoc, key, val| [key[0], val[0]] if key }.compact]
 
     target = options["to:"] || options["to"] # When using hashrocket syntax there is no ':'

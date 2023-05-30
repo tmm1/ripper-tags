@@ -578,6 +578,9 @@ class TagRipperTest < Test::Unit::TestCase
       class C
         delegate
         delegate [1, 2]
+        %i(test).each do |m|
+          delegate m, :"\#{m}=", to: :object
+        end
       end
     EOC
     assert_equal 1, tags.count
@@ -845,20 +848,5 @@ class TagRipperTest < Test::Unit::TestCase
 
     expected = ["Object#test_method", "M", "M#included_method", "M#cache", "M#cache="]
     assert_equal expected, tags.map { |t| t[:full_name] }
-  end
-
-  def test_multi_argument_delegate
-    tags = extract(<<-EOC)
-      class C
-        def object = Object.new
-        delegate :thing, :other, to: :object
-        %i(test).each do |m|
-          delegate m, :"\#{m}=", to: :object
-        end
-      end
-    EOC
-
-    expected = ["C", "C#object", "C#thing", "C#other", "C#test", "C#test="].sort
-    assert_equal expected, tags.map { |t| t[:full_name] }.sort
   end
 end
