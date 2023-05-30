@@ -579,7 +579,7 @@ class TagRipperTest < Test::Unit::TestCase
         delegate
         delegate [1, 2]
         %i(test).each do |m|
-          delegate m, :"\#{m}=", to: :object
+          delegate m, :"\#{m}=", :to => :object
         end
       end
     EOC
