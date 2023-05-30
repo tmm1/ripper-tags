@@ -578,7 +578,7 @@ class TagRipperTest < Test::Unit::TestCase
       class C
         delegate
         delegate [1, 2]
-        %i(test).each do |m|
+        [:test].each do |m|
           delegate m, :"\#{m}=", :to => :object
         end
       end
