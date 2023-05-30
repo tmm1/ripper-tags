@@ -578,6 +578,9 @@ class TagRipperTest < Test::Unit::TestCase
       class C
         delegate
         delegate [1, 2]
+        [:test].each do |m|
+          delegate m, :"\#{m}=", :to => :object
+        end
       end
     EOC
     assert_equal 1, tags.count
