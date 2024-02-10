@@ -258,6 +258,17 @@ class TagRipperTest < Test::Unit::TestCase
     assert_equal('method',           module_tags.find{ |t| t[:name] == 'def' }[:kind])
   end
 
+  def test_dynamic_module_function
+    tags = extract(<<-RUBY)
+      module Airbrussh
+        ANSI_CODES.each do |name, code|
+          module_function(name)
+        end
+      end
+    RUBY
+    assert_equal ["Airbrussh"], tags.map { |t| t.fetch(:name) }
+  end
+
   def test_extract_one_line_definition_access_by_symbol
     %w(private public protected).each do |visibility|
       tags = extract(<<-EOC)

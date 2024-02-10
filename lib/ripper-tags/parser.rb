@@ -220,7 +220,7 @@ class Parser < Ripper
           method_name = args[1][1]
         end
 
-        [procedure, klass, method_name, access, line]
+        [procedure, klass, method_name, access, line] if method_name
       when "scope", "named_scope"
         scope_name = args[1][0]
         [:rails_def, :scope, scope_name, line] if scope_name
