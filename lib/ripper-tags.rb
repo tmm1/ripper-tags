@@ -11,7 +11,7 @@ require 'ripper-tags/vim_append_formatter'
 require 'ripper-tags/json_formatter'
 
 module RipperTags
-  def self.version() "1.0.1" end
+  def self.version() "1.0.2" end
 
   FatalError = Class.new(RuntimeError)
 
