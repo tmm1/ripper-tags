@@ -1,12 +1,17 @@
 require 'test/unit'
 require 'ripper-tags/parser'
+require 'pp'
 
 class TagRipperTest < Test::Unit::TestCase
   def extract(code)
     RipperTags::Parser.extract(code)
   rescue
     puts
-    p Prism.parse(code).value
+    if ENV["PRISM_VISITOR"] || ENV["PRISM_WALK"]
+      p Prism.parse(code).value
+    else
+      pp Ripper.sexp(code)
+    end
     raise
   end
 
@@ -97,15 +102,15 @@ class TagRipperTest < Test::Unit::TestCase
     EOC
 
     assert_equal %w[
-      STATUSES
       OPEN
-      FROZEN_ARRAY
+      STATUSES
       ARRAY_ENTRY
-      DISPLAY_MAPPING
+      FROZEN_ARRAY
       CANCELLED
       STARTED
-      FROZEN_HASH
+      DISPLAY_MAPPING
       HASH_ENTRY
+      FROZEN_HASH
     ], tags.map { |t| t[:name] }
 
     tags.each do |t|
